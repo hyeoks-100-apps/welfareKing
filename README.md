@@ -17,16 +17,11 @@ npm run build
 
 ## 배포
 
-`main` 브랜치에 push 하면 GitHub Actions가 자동으로 빌드 후 Pages에 배포합니다.
+`main` 브랜치에 push 하면 GitHub Actions가 자동으로 빌드 후 `gh-pages` 브랜치에 배포합니다.
 
-> GitHub 저장소 설정에서 **Pages > Source**를 **GitHub Actions**로 변경해야 정상 배포됩니다.
+> GitHub 저장소 설정에서 **Pages > Build and deployment > Source**를 **Deploy from a branch**로 설정하고, 브랜치를 **gh-pages / (root)** 로 선택해야 합니다.
 
-> 참고: 조직/저장소 권한 정책에 따라 Actions 토큰은 Pages 사이트를 자동 생성할 수 없을 수 있습니다. 이 경우 **Settings > Pages**에서 먼저 수동으로 활성화해야 합니다.
+### 배포 오류가 날 때
 
-### 배포 중 `Failed to create deployment (status: 404)`가 뜰 때
-
-아래를 먼저 확인하세요.
-
-1. 저장소 **Settings > Pages**에서 GitHub Pages가 활성화되어 있는지
-2. **Source**가 **GitHub Actions**로 선택되어 있는지
-3. 워크플로우를 재실행했는지 (`Actions` 탭 또는 `workflow_dispatch`)
+- `actions/deploy-pages` 기반 404/권한 오류가 반복되면, 현재 워크플로우처럼 `gh-pages` 브랜치 배포 방식을 사용하면 우회할 수 있습니다.
+- 저장소/조직 정책으로 GitHub Actions 토큰 권한이 제한된 경우, 저장소 관리자에게 `gh-pages` 브랜치 쓰기 권한과 Pages 설정을 확인받아야 합니다.
