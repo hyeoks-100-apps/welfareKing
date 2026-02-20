@@ -1,0 +1,12 @@
+{
+  "id": "smallbiz-rent-relief-quickstart",
+  "slug": "smallbiz-rent-relief-quickstart",
+  "title": "소상공인 임대료 지원금 빠른 신청 가이드",
+  "summary": "자주 묻는 매출 기준과 증빙서류를 예시 중심으로 정리했습니다.",
+  "category": "smallbiz",
+  "tags": ["소상공인", "임대료", "지원"],
+  "thumbnail": "/images/placeholders/p1.svg",
+  "publishedAt": "2026-02-15",
+  "status": "published",
+  "contentMd": "## 빠른 준비\n\n임대료 지원금은 매출 증빙과 임대차 계약정보가 중요합니다.\n\n- 부가세 신고자료\n- 임대차계약서 사본\n- 통장 사본"
+}

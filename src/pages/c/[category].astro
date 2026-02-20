@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 import PostCard from '../../components/PostCard.astro';
 import { CATEGORIES, type CategorySlug } from '../../lib/categories';
-import { MOCK_POSTS } from '../../lib/mockPosts';
+import { getPostsByCategory } from '../../lib/posts';
 
 export function getStaticPaths() {
   return CATEGORIES.map((category) => ({
@@ -14,7 +14,7 @@ export function getStaticPaths() {
 
 const { category } = Astro.props;
 const slug = Astro.params.category as CategorySlug;
-const filteredPosts = MOCK_POSTS.filter((post) => post.category === slug);
+const filteredPosts = getPostsByCategory(slug);
 ---
 
 <BaseLayout title={`${category.label} | 복지정보.com`}>

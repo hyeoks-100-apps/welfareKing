@@ -1,9 +1,10 @@
 ---
+import { formatDate } from '../lib/date';
 import { href } from '../lib/href';
-import type { MockPost } from '../lib/mockPosts';
+import type { Post } from '../lib/postSchema';
 
 interface Props {
-  post: MockPost;
+  post: Post;
 }
 
 const { post } = Astro.props;
@@ -18,10 +19,10 @@ const { post } = Astro.props;
   />
   <div class="space-y-3 p-4">
     <h3 class="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
-    <p class="line-clamp-2 text-sm text-slate-600">{post.excerpt}</p>
-    <p class="text-xs text-slate-500">{post.date}</p>
+    <p class="line-clamp-2 text-sm text-slate-600">{post.summary}</p>
+    <p class="text-xs text-slate-500">{formatDate(post.publishedAt)}</p>
     <a
-      href={href(`/c/${post.category}/`)}
+      href={href(`/p/${post.slug}/`)}
       class="inline-flex text-sm font-semibold text-sky-700 underline-offset-4 group-hover:underline"
     >
       ... 더보기

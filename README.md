@@ -15,6 +15,11 @@ npm run dev
 npm run build
 ```
 
+## 게시글 데이터
+
+- 게시글은 `data/posts/*.json` 파일로 관리합니다.
+- `status: "draft"` 글은 로컬 개발(`npm run dev`)에서만 보이고, 프로덕션 빌드에서는 제외됩니다.
+
 ## 배포
 
 `main` 브랜치에 push 하면 GitHub Actions가 자동으로 빌드 후 Pages에 배포합니다.
