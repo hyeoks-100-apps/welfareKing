@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import PostCard from '../components/PostCard.astro';
+import { getAllPosts } from '../lib/posts';
+
+const posts = getAllPosts();
+---
+
+<BaseLayout>
+  <SiteHeader />
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">최신 글</h1>
+    <p class="text-sm text-slate-600">최신 지원금·생활 정보를 빠르게 확인해 보세요.</p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>

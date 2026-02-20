@@ -1,0 +1,12 @@
+{
+  "id": "youth-startup-voucher-summary",
+  "slug": "youth-startup-voucher-summary",
+  "title": "청년 창업 바우처, 놓치기 쉬운 가점 항목 정리",
+  "summary": "심사 단계별 가점 포인트와 준비 순서를 이해하기 쉽게 설명합니다.",
+  "category": "youth",
+  "tags": ["청년", "창업", "바우처"],
+  "thumbnail": "/images/placeholders/p3.svg",
+  "publishedAt": "2026-02-12",
+  "status": "draft",
+  "contentMd": "## 초안 문서\n\n이 글은 현재 **draft** 상태입니다.\n\n로컬 개발 환경에서는 보이고, 프로덕션 빌드에서는 제외되어야 합니다."
+}
