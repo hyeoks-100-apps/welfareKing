@@ -21,6 +21,8 @@ npm run build
 
 > GitHub 저장소 설정에서 **Pages > Source**를 **GitHub Actions**로 변경해야 정상 배포됩니다.
 
+> 참고: 조직/저장소 권한 정책에 따라 Actions 토큰은 Pages 사이트를 자동 생성할 수 없을 수 있습니다. 이 경우 **Settings > Pages**에서 먼저 수동으로 활성화해야 합니다.
+
 ### 배포 중 `Failed to create deployment (status: 404)`가 뜰 때
 
 아래를 먼저 확인하세요.
