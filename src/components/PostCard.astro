@@ -1,0 +1,30 @@
+---
+import { href } from '../lib/href';
+import type { MockPost } from '../lib/mockPosts';
+
+interface Props {
+  post: MockPost;
+}
+
+const { post } = Astro.props;
+---
+
+<article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+  <img
+    src={href(post.thumbnail)}
+    alt={post.title}
+    class="h-44 w-full rounded-t-2xl object-cover"
+    loading="lazy"
+  />
+  <div class="space-y-3 p-4">
+    <h3 class="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
+    <p class="line-clamp-2 text-sm text-slate-600">{post.excerpt}</p>
+    <p class="text-xs text-slate-500">{post.date}</p>
+    <a
+      href={href(`/c/${post.category}/`)}
+      class="inline-flex text-sm font-semibold text-sky-700 underline-offset-4 group-hover:underline"
+    >
+      ... 더보기
+    </a>
+  </div>
+</article>
