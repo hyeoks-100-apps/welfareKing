@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getAllPosts } from '../../lib/posts';
 
 export const GET: APIRoute = () => {
-  const items = getAllPosts({ includeDrafts: false }).map((post) => ({
+  const items = getAllPosts({ includeDrafts: import.meta.env.DEV }).map((post) => ({
     slug: post.slug,
     title: post.title,
     summary: post.summary,
