@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import PostCard from '../components/PostCard.astro';
+import { MOCK_POSTS } from '../lib/mockPosts';
+---
+
+<BaseLayout>
+  <SiteHeader />
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">최신 복지 정보</h1>
+    <p class="text-sm text-slate-600">필요한 지원금/생활정보를 카테고리별로 빠르게 찾아보세요.</p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {MOCK_POSTS.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>
