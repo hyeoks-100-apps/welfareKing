@@ -1,0 +1,75 @@
+---
+import { href } from '../lib/href';
+
+interface Props {
+  basePath: string;
+  currentPage: number;
+  totalPages: number;
+}
+
+const { basePath, currentPage, totalPages } = Astro.props;
+
+const normalizedBasePath = basePath.endsWith('/') ? basePath : `${basePath}/`;
+
+const pageHref = (page: number) =>
+  page <= 1 ? href(normalizedBasePath) : href(`${normalizedBasePath}page/${page}/`);
+
+const pages = (() => {
+  const list: Array<number | 'ellipsis'> = [];
+  const windowStart = Math.max(2, currentPage - 2);
+  const windowEnd = Math.min(totalPages - 1, currentPage + 2);
+
+  if (totalPages <= 1) return list;
+
+  list.push(1);
+  if (windowStart > 2) list.push('ellipsis');
+
+  for (let p = windowStart; p <= windowEnd; p += 1) {
+    list.push(p);
+  }
+
+  if (windowEnd < totalPages - 1) list.push('ellipsis');
+  if (totalPages > 1) list.push(totalPages);
+
+  return list;
+})();
+---
+
+{
+  totalPages > 1 && (
+    <nav aria-label="Pagination" class="mt-8 flex flex-wrap items-center gap-2">
+      {currentPage > 1 ? (
+        <a href={pageHref(currentPage - 1)} class="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+          이전
+        </a>
+      ) : (
+        <span class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-300">이전</span>
+      )}
+
+      {pages.map((item) =>
+        item === 'ellipsis' ? (
+          <span class="px-1 text-slate-400">...</span>
+        ) : item === currentPage ? (
+          <span aria-current="page" class="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white">
+            {item}
+          </span>
+        ) : (
+          <a
+            href={pageHref(item)}
+            class="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            {item}
+          </a>
+        )
+      )}
+
+      {currentPage < totalPages ? (
+        <a href={pageHref(currentPage + 1)} class="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+          다음
+        </a>
+      ) : (
+        <span class="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-300">다음</span>
+      )}
+    </nav>
+  )
+}
