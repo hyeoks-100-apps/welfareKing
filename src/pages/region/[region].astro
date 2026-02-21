@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import PostCard from '../../components/PostCard.astro';
+import PaginationNav from '../../components/PaginationNav.astro';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../lib/pagination';
+import { getAllPosts } from '../../lib/posts';
+import { regionLabel } from '../../lib/regions';
+
+const allPosts = getAllPosts();
+
+const filterByRegion = (code: string) =>
+  allPosts.filter((post) => post.regions.includes(code) || post.regions.includes('ALL'));
+
+export function getStaticPaths() {
+  const codes = [...new Set(getAllPosts().flatMap((post) => post.regions))].filter((code) => code !== 'ALL');
+  return codes.map((code) => ({ params: { region: code } }));
+}
+
+const code = String(Astro.params.region || '').toUpperCase();
+const regionPosts = filterByRegion(code);
+const pages = totalPages(regionPosts.length, PAGE_SIZE);
+const posts = sliceByPage(regionPosts, 1, PAGE_SIZE);
+const basePath = `/region/${code}/`;
+---
+
+<BaseLayout title={`${regionLabel(code)} 복지 정보 | 복지정보.com`} description={`${regionLabel(code)} 지역 복지/지원금 목록`} canonicalPath={basePath}>
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{regionLabel(code)} 복지 정보</h1>
+    <p class="text-sm text-slate-600">해당 지역 + 전국 대상 글 {regionPosts.length}건</p>
+  </section>
+
+  {
+    posts.length > 0 ? (
+      <>
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => <PostCard post={post} />)}
+        </section>
+        <PaginationNav basePath={basePath} currentPage={1} totalPages={pages} />
+      </>
+    ) : (
+      <p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">지역에 해당하는 글이 없습니다.</p>
+    )
+  }
+</BaseLayout>

@@ -7,6 +7,7 @@ import { CATEGORIES } from '../../lib/categories';
 import { formatDate } from '../../lib/date';
 import { href } from '../../lib/href';
 import { getAllPosts, getPostBySlug } from '../../lib/posts';
+import { encodeTag } from '../../lib/tagCodec';
 import { withBaseInHtml } from '../../lib/withBaseInHtml';
 
 export function getStaticPaths() {
@@ -27,7 +28,8 @@ const categoryLabel = CATEGORIES.find((category) => category.slug === post.categ
 const html = withBaseInHtml(marked.parse(post.contentMd) as string);
 const canonicalPath = `/p/${post.slug}/`;
 const canonicalUrl = Astro.site ? new URL(href(canonicalPath), Astro.site).toString() : undefined;
-const ogImageUrl = Astro.site ? new URL(href(post.thumbnail), Astro.site).toString() : undefined;
+const ogImagePath = post.ogImage || post.thumbnail;
+const ogImageUrl = Astro.site ? new URL(href(ogImagePath), Astro.site).toString() : undefined;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -49,7 +51,7 @@ const jsonLd = {
   title={`${post.title} | 복지정보.com`}
   description={post.summary}
   canonicalPath={canonicalPath}
-  ogImagePath={post.thumbnail}
+  ogImagePath={ogImagePath}
   ogType="article"
 >
   <SiteHeader />
@@ -58,6 +60,16 @@ const jsonLd = {
       <p class="text-sm font-semibold text-sky-700">{categoryLabel}</p>
       <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{post.title}</h1>
       <p class="text-sm text-slate-600">{post.summary}</p>
+      <div class="flex flex-wrap gap-1.5">
+        {post.tags.map((tag) => (
+          <a
+            href={href(`/tag/${encodeTag(tag)}/`)}
+            class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-200"
+          >
+            #{tag}
+          </a>
+        ))}
+      </div>
       <p class="text-xs text-slate-500">발행일: {formatDate(post.publishedAt)}</p>
     </header>
 

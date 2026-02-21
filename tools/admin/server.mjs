@@ -40,6 +40,7 @@ const PostSchema = z.object({
   category: z.enum(['youth', 'midlife', 'government', 'smallbiz', 'living-economy']),
   tags: z.array(z.string()),
   thumbnail: z.string().startsWith('/'),
+  ogImage: z.string().startsWith('/').optional(),
   publishedAt: z.string().regex(DATE_RE),
   updatedAt: z.string().regex(DATE_RE).optional(),
   status: z.enum(['draft', 'published']),
@@ -215,6 +216,7 @@ app.post('/api/posts', async (req, res) => {
       benefit: body.benefit || {},
       contact: String(body.contact || ''),
       organization: String(body.organization || ''),
+      ogImage: typeof body.ogImage === 'string' && body.ogImage.startsWith('/') ? body.ogImage : undefined,
       updatedAt: todayISODate(),
     };
 

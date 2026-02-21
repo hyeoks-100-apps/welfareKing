@@ -12,7 +12,9 @@
     "qa:assets": "node tools/maintenance/check-assets.mjs",
     "qa:links": "node tools/maintenance/check-links.mjs --treat-403-as-warning",
     "archive:dry": "node tools/maintenance/archive.mjs --older-than-days 365 --dry-run",
-    "archive:apply": "node tools/maintenance/archive.mjs --older-than-days 365 --apply"
+    "archive:apply": "node tools/maintenance/archive.mjs --older-than-days 365 --apply",
+    "og:gen": "node tools/maintenance/generate-og.mjs --all",
+    "og:gen:force": "node tools/maintenance/generate-og.mjs --all --force --write-json"
   },
   "devDependencies": {
     "@astrojs/rss": "^4.0.9",

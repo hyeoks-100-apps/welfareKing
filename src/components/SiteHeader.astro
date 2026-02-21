@@ -5,6 +5,7 @@ import { href } from '../lib/href';
 const navItems = [
   { label: 'Home', url: href('/') },
   { label: '검색', url: href('/search/') },
+  { label: '업데이트', url: href('/updates/') },
   ...CATEGORIES.map((category) => ({
     label: category.label,
     url: href(`/c/${category.slug}/`),

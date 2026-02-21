@@ -11,6 +11,7 @@ export const PostSchema = z.object({
   category: z.enum(['youth', 'midlife', 'government', 'smallbiz', 'living-economy']),
   tags: z.array(z.string()),
   thumbnail: z.string().startsWith('/'),
+  ogImage: z.string().startsWith('/').optional(),
   publishedAt: z.string().regex(DATE_RE),
   updatedAt: z.string().regex(DATE_RE).optional(),
   status: z.enum(['draft', 'published']),

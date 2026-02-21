@@ -2,8 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 import PostCard from '../../components/PostCard.astro';
+import PaginationNav from '../../components/PaginationNav.astro';
 import { CATEGORIES, type CategorySlug } from '../../lib/categories';
-
+import { href } from '../../lib/href';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../lib/pagination';
 import { getPostsByCategory } from '../../lib/posts';
 
 export function getStaticPaths() {
@@ -15,7 +17,9 @@ export function getStaticPaths() {
 
 const { category } = Astro.props;
 const slug = Astro.params.category as CategorySlug;
-const filteredPosts = getPostsByCategory(slug);
+const allPosts = getPostsByCategory(slug);
+const pagePosts = sliceByPage(allPosts, 1, PAGE_SIZE);
+const pages = totalPages(allPosts.length, PAGE_SIZE);
 ---
 
 <BaseLayout
@@ -26,125 +30,40 @@ const filteredPosts = getPostsByCategory(slug);
   <SiteHeader />
   <section class="space-y-2 pb-4">
     <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{category.label}</h1>
-    <p class="text-sm text-slate-600">카테고리 관련 최신 글 {filteredPosts.length}건</p>
+    <p class="text-sm text-slate-600">카테고리 관련 최신 글 {allPosts.length}건</p>
+
+    <div class="flex gap-2">
+      <a href={href(`/c/${slug}/`)} class="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white">최신순</a>
+      <a
+        href={href(`/c/${slug}/deadline/`)}
+        class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+      >
+        마감 임박순
+      </a>
+    </div>
   </section>
 
   {
-    filteredPosts.length > 0 ? (
+    pagePosts.length > 0 ? (
       <>
-        <div class="mb-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            data-sort-btn="latest"
-            class="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white"
-          >
-            최신순
-          </button>
-          <button
-            type="button"
-            data-sort-btn="deadline"
-            class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
-          >
-            마감 임박순
-          </button>
-        </div>
-
-        <section id="post-list" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {
-            filteredPosts.map((post) => (
-              <div data-post-item data-published={post.publishedAt} data-end={post.applicationPeriod?.end ?? ''}>
-                <PostCard post={post} />
-              </div>
-            ))
-          }
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {pagePosts.map((post) => <PostCard post={post} />)}
         </section>
+        <PaginationNav basePath={`/c/${slug}/`} currentPage={1} totalPages={pages} />
       </>
     ) : (
-      <p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
-        아직 등록된 글이 없습니다.
-      </p>
+      <p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">아직 등록된 글이 없습니다.</p>
     )
   }
 
   <script type="module">
-    const list = document.getElementById('post-list');
-    if (!list) {
-      // no-op for empty categories
-    } else {
-      const buttons = Array.from(document.querySelectorAll('[data-sort-btn]'));
-
-      const getKstToday = () =>
-        new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Asia/Seoul',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(new Date());
-
-      const toDayNum = (ymd) => {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || '');
-        if (!m) return Number.NaN;
-        const [, y, mo, d] = m;
-        return Math.floor(Date.UTC(Number(y), Number(mo) - 1, Number(d)) / 86400000);
-      };
-
-      const setActiveButton = (sort) => {
-        buttons.forEach((btn) => {
-          const isActive = btn.dataset.sortBtn === sort;
-          btn.className = isActive
-            ? 'rounded-full bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white'
-            : 'rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200';
-        });
-      };
-
-      const sortItems = (sort) => {
-        const items = Array.from(list.querySelectorAll('[data-post-item]'));
-        const todayNum = toDayNum(getKstToday());
-
-        items.sort((a, b) => {
-          const aPublished = a.dataset.published || '';
-          const bPublished = b.dataset.published || '';
-          const aEnd = a.dataset.end || '';
-          const bEnd = b.dataset.end || '';
-
-          if (sort === 'deadline') {
-            const aEndNum = toDayNum(aEnd);
-            const bEndNum = toDayNum(bEnd);
-            const aHasValid = !Number.isNaN(aEndNum);
-            const bHasValid = !Number.isNaN(bEndNum);
-            const aExpired = aHasValid && aEndNum < todayNum;
-            const bExpired = bHasValid && bEndNum < todayNum;
-
-            if (aHasValid !== bHasValid) return aHasValid ? -1 : 1;
-            if (aExpired !== bExpired) return aExpired ? 1 : -1;
-            if (aHasValid && bHasValid && aEndNum !== bEndNum) return aEndNum - bEndNum;
-          }
-
-          return bPublished.localeCompare(aPublished);
-        });
-
-        items.forEach((item) => list.append(item));
-      };
-
-      const params = new URLSearchParams(window.location.search);
-      const initialSort = params.get('sort') === 'deadline' ? 'deadline' : 'latest';
-
-      const applySort = (sort) => {
-        const next = new URLSearchParams(window.location.search);
-        next.set('sort', sort);
-        history.replaceState({}, '', `${window.location.pathname}?${next.toString()}`);
-        setActiveButton(sort);
-        sortItems(sort);
-      };
-
-      buttons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const sort = btn.dataset.sortBtn === 'deadline' ? 'deadline' : 'latest';
-          applySort(sort);
-        });
-      });
-
-      applySort(initialSort);
+    const params = new URLSearchParams(window.location.search);
+    const sort = params.get('sort');
+    if (sort === 'deadline') {
+      window.location.replace('{href(`/c/${slug}/deadline/`)}');
+    }
+    if (sort === 'latest') {
+      window.location.replace('{href(`/c/${slug}/`)}');
     }
   </script>
 </BaseLayout>

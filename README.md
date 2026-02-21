@@ -82,3 +82,27 @@ npm run archive:apply
   - 아카이브 Dry Run / Apply (`olderThanDays`, `deleteImages` 옵션 지원)
 - **커밋 & 푸시** 전에 `푸시 전 검사` 체크가 켜져 있으면 콘텐츠/이미지 검사를 선행하고,
   실패 시 커밋/푸시를 중단합니다.
+
+## 아카이브 라우트
+
+- 태그 아카이브: `/tag/<encoded-tag>/`
+- 지역 아카이브: `/region/<REGION_CODE>/`
+- 업데이트 로그: `/updates/`
+
+지역 페이지는 해당 지역 코드 글과 `ALL`(전국) 대상 글을 함께 보여줍니다.
+
+## 페이지네이션 규칙
+
+- 1페이지는 basePath 자체를 사용합니다. (예: `/c/youth/`)
+- 2페이지부터 `page/2/` 형태를 사용합니다. (예: `/c/youth/page/2/`)
+- 동일 규칙이 카테고리/마감임박/태그/지역 아카이브에 공통 적용됩니다.
+
+## OG 이미지 자동 생성 (선택)
+
+```bash
+npm run og:gen
+# 또는 기존 파일 덮어쓰기 + post JSON에 ogImage 기입
+npm run og:gen:force
+```
+
+- `sharp`가 없는 환경에서는 자동으로 스킵됩니다(빌드 실패 유발 안 함).
