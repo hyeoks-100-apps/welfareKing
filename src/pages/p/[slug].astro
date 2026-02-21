@@ -65,11 +65,11 @@ const jsonLd = post
   canonicalPath={canonicalPath}
   ogImagePath={ogImagePath}
   ogType={post ? 'article' : 'website'}
+  noindex={isRedirectPage}
 >
   {
     isRedirectPage ? (
       <>
-        <meta name="robots" content="noindex, follow" />
         <meta http-equiv="refresh" content={`0;url=${redirectHref}`} />
         <script type="module" define:vars={{ redirectHref }}>
           window.location.replace(redirectHref);

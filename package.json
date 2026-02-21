@@ -14,7 +14,9 @@
     "archive:dry": "node tools/maintenance/archive.mjs --older-than-days 365 --dry-run",
     "archive:apply": "node tools/maintenance/archive.mjs --older-than-days 365 --apply",
     "og:gen": "node tools/maintenance/generate-og.mjs --all",
-    "og:gen:force": "node tools/maintenance/generate-og.mjs --all --force --write-json"
+    "og:gen:force": "node tools/maintenance/generate-og.mjs --all --force --write-json",
+    "perf:dist": "node tools/maintenance/report-dist.mjs",
+    "perf:dist:strict": "node tools/maintenance/report-dist.mjs --strict"
   },
   "devDependencies": {
     "@astrojs/rss": "^4.0.9",

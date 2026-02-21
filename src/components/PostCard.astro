@@ -2,6 +2,7 @@
 import { formatDate } from '../lib/date';
 import { getDeadlineLabel } from '../lib/deadline';
 import { href } from '../lib/href';
+import { imgVersion } from '../lib/imgVersion';
 import type { Post } from '../lib/postSchema';
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
 
 const { post } = Astro.props;
 const deadline = getDeadlineLabel(post.applicationPeriod?.end);
+const thumbnailVersion = imgVersion(post);
+const thumbnailSrc = `${href(post.thumbnail)}${thumbnailVersion ? `?v=${thumbnailVersion}` : ''}`;
 
 const deadlineClassByKind = {
   expired: 'bg-slate-100 text-slate-600',
@@ -21,7 +24,7 @@ const deadlineClassByKind = {
 
 <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
   <img
-    src={href(post.thumbnail)}
+    src={thumbnailSrc}
     alt={post.title}
     class="h-44 w-full rounded-t-2xl object-cover"
     loading="lazy"

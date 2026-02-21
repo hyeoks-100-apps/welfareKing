@@ -8,6 +8,7 @@ interface Props {
   canonicalPath?: string;
   ogImagePath?: string;
   ogType?: 'website' | 'article';
+  noindex?: boolean;
 }
 
 const {
@@ -16,6 +17,7 @@ const {
   canonicalPath = '/',
   ogImagePath,
   ogType = 'website',
+  noindex = false,
 } = Astro.props;
 
 const canonicalUrl = Astro.site ? new URL(href(canonicalPath), Astro.site).toString() : undefined;
@@ -29,6 +31,7 @@ const ogImageUrl = ogImagePath && Astro.site ? new URL(href(ogImagePath), Astro.
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
     <meta property="og:title" content={title} />

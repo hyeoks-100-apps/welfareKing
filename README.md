@@ -48,6 +48,33 @@ npm run build
 - `sharp`가 설치된 환경에서는 업로드 이미지를 최대 폭 1400px로 리사이즈하고 webp(quality 82)로 자동 최적화합니다(옵션).
 - 어드민에서 커밋&푸시(또는 직접 `git push`)하면 GitHub Actions로 Pages 배포됩니다.
 
+
+## 404 / Empty State UX
+
+- 전역 `404` 페이지를 제공해 잘못된 링크 접근 시 홈/검색/업데이트로 바로 이동할 수 있습니다.
+- 카테고리/태그/지역/검색 결과가 비어 있을 때는 공통 Empty State 카드로 다음 행동(홈/검색/업데이트)을 안내합니다.
+
+## 검색 사용법 (초성 + 부분 검색)
+
+- `/search/`는 Fuse.js 기반 검색에 더해 한글 초성 검색(예: `ㅊㄴ`)을 지원합니다.
+- 일반 텍스트 검색은 정규화 문자열 includes + Fuse 결과를 병합해 부분 검색 누락을 줄였습니다.
+- 쿼리 파라미터: `q`(검색어), `cat`(카테고리 slug), `tag`(태그).
+
+## 성능/번들 리포트
+
+```bash
+npm run perf:dist
+# 경고를 실패(exit 1)로 처리
+npm run perf:dist:strict
+```
+
+- `dist` 총 용량, 상위 큰 파일 20개, HTML/CSS/JS 합계, 이미지 개수를 확인할 수 있습니다.
+
+## 이미지 캐시 버전
+
+- 썸네일 URL에 `?v=YYYYMMDD`를 자동으로 붙여 캐시된 이미지 교체 반영 지연을 완화합니다.
+- 버전은 `updatedAt` 또는 `publishedAt` 날짜에서 계산하며, 원본 `data/posts/*.json` 값은 변경하지 않습니다.
+
 ## 배포
 
 `main` 브랜치 push, 수동 실행, 매일 KST 00:10(UTC 15:10 cron) 스케줄로 GitHub Actions가 빌드 후 Pages에 배포합니다.
