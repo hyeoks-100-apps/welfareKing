@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>복지정보.com Admin</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>복지정보.com 로컬 어드민</h1>
+      <div class="top-actions">
+        <button id="btn-refresh-status">변경사항 확인</button>
+        <button id="btn-commit-push" class="primary">커밋 & 푸시</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel left">
+        <div class="panel-header">
+          <h2>게시글 목록</h2>
+          <button id="btn-new-post">새 글</button>
+        </div>
+        <ul id="post-list" class="post-list"></ul>
+      </aside>
+
+      <section class="panel right">
+        <h2>게시글 편집</h2>
+        <form id="post-form" class="form-grid">
+          <label>Slug <input id="slug" required /></label>
+          <label>Title <input id="title" required /></label>
+          <label>Summary <textarea id="summary" rows="2" required></textarea></label>
+
+          <div class="row2">
+            <label>Category
+              <select id="category">
+                <option value="youth">youth</option>
+                <option value="midlife">midlife</option>
+                <option value="government">government</option>
+                <option value="smallbiz">smallbiz</option>
+                <option value="living-economy">living-economy</option>
+              </select>
+            </label>
+
+            <label>Status
+              <select id="status">
+                <option value="draft">draft</option>
+                <option value="published">published</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row2">
+            <label>Tags (쉼표 구분) <input id="tags" placeholder="청년, 월세" /></label>
+            <label>Regions (쉼표 구분) <input id="regions" placeholder="ALL 또는 SEOUL, BUSAN" /></label>
+          </div>
+
+          <div class="row2">
+            <label>PublishedAt <input id="publishedAt" type="date" required /></label>
+            <label>UpdatedAt <input id="updatedAt" type="date" /></label>
+          </div>
+
+          <label>Thumbnail
+            <div class="inline">
+              <input id="thumbnail" readonly />
+              <input id="thumbnail-upload" type="file" accept="image/*" />
+            </div>
+          </label>
+
+          <section class="subgrid">
+            <h3>신청 기간 (applicationPeriod)</h3>
+            <div class="row3">
+              <label>Start <input id="periodStart" type="date" /></label>
+              <label>End <input id="periodEnd" type="date" /></label>
+              <label>Note <input id="periodNote" /></label>
+            </div>
+          </section>
+
+          <section class="subgrid">
+            <h3>지원 내용 (benefit)</h3>
+            <div class="row3">
+              <label>Type
+                <select id="benefitType">
+                  <option value="">(없음)</option>
+                  <option value="CASH">CASH</option>
+                  <option value="VOUCHER">VOUCHER</option>
+                  <option value="LOAN">LOAN</option>
+                  <option value="TAX">TAX</option>
+                  <option value="SERVICE">SERVICE</option>
+                  <option value="ETC">ETC</option>
+                </select>
+              </label>
+              <label>Amount Text <input id="benefitAmountText" /></label>
+              <label>Payment Cycle
+                <select id="benefitPaymentCycle">
+                  <option value="">(없음)</option>
+                  <option value="ONCE">ONCE</option>
+                  <option value="MONTHLY">MONTHLY</option>
+                  <option value="YEARLY">YEARLY</option>
+                  <option value="ETC">ETC</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <div class="row2">
+            <label>주관 (organization) <input id="organization" /></label>
+            <label>문의 (contact) <input id="contact" /></label>
+          </div>
+
+          <label>대상/조건 (한 줄 1개)
+            <textarea id="eligibility" rows="4"></textarea>
+          </label>
+
+          <label>신청 방법 (한 줄 1개)
+            <textarea id="howToApply" rows="4"></textarea>
+          </label>
+
+          <label>필요 서류 (한 줄 1개)
+            <textarea id="documents" rows="4"></textarea>
+          </label>
+
+          <section class="subgrid">
+            <h3>출처 링크 (sourceLinks)</h3>
+            <div class="row2">
+              <label>Link Title <input id="sourceTitle" /></label>
+              <label>Link URL <input id="sourceUrl" placeholder="https://..." /></label>
+            </div>
+            <div class="inline">
+              <button type="button" id="btn-add-source">링크 추가</button>
+            </div>
+            <ul id="source-list" class="source-list"></ul>
+          </section>
+
+          <label>Content Markdown
+            <div class="inline">
+              <button type="button" id="btn-insert-template">본문 템플릿 넣기</button>
+            </div>
+            <textarea id="contentMd" rows="14" required></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="primary">저장</button>
+          </div>
+        </form>
+
+        <section class="upload-box">
+          <h3>본문 이미지 업로드</h3>
+          <div class="inline">
+            <input id="content-upload" type="file" multiple accept="image/*" />
+            <button id="btn-upload-content">업로드</button>
+          </div>
+          <ul id="uploaded-list"></ul>
+        </section>
+
+        <section>
+          <h3>마크다운 미리보기</h3>
+          <div id="preview" class="preview"></div>
+        </section>
+
+        <section>
+          <h3>작업 로그</h3>
+          <pre id="log"></pre>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
