@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import SiteHeader from '../../../../components/SiteHeader.astro';
+import PostCard from '../../../../components/PostCard.astro';
+import PaginationNav from '../../../../components/PaginationNav.astro';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../../../lib/pagination';
+import { getAllPosts } from '../../../../lib/posts';
+import { regionLabel } from '../../../../lib/regions';
+
+const allPosts = getAllPosts();
+
+export function getStaticPaths() {
+  const posts = getAllPosts();
+  const filterByRegion = (code: string) => posts.filter((post) => post.regions.includes(code) || post.regions.includes('ALL'));
+  const codes = [...new Set(posts.flatMap((post) => post.regions))].filter((code) => code !== 'ALL');
+
+  return codes.flatMap((code) => {
+    const filtered = filterByRegion(code);
+    const pages = totalPages(filtered.length, PAGE_SIZE);
+
+    return Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2).map((pageNumber) => ({
+      params: { region: code, page: String(pageNumber) },
+      props: { code, pageNumber },
+    }));
+  });
+}
+
+const filterByRegion = (code: string) => allPosts.filter((post) => post.regions.includes(code) || post.regions.includes('ALL'));
+const { code, pageNumber } = Astro.props as { code: string; pageNumber: number };
+const regionCode = String(code || '').toUpperCase();
+const regionPosts = filterByRegion(regionCode);
+const pages = totalPages(regionPosts.length, PAGE_SIZE);
+const posts = sliceByPage(regionPosts, pageNumber, PAGE_SIZE);
+---
+
+<BaseLayout
+  title={`${regionLabel(regionCode)} 복지 정보 - ${pageNumber}페이지 | 복지정보.com`}
+  description={`${regionLabel(regionCode)} 지역 복지/지원금 목록 ${pageNumber}페이지`}
+  canonicalPath={`/region/${regionCode}/page/${pageNumber}/`}
+>
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{regionLabel(regionCode)} 복지 정보</h1>
+    <p class="text-sm text-slate-600">{pageNumber} / {pages} 페이지</p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+
+  <PaginationNav basePath={`/region/${regionCode}/`} currentPage={pageNumber} totalPages={pages} />
+</BaseLayout>

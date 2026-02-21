@@ -1,0 +1,43 @@
+{
+  "id": "government-energy-cashback-2026",
+  "slug": "government-energy-cashback-2026",
+  "title": "정부 에너지 환급금 2026 신청 캘린더",
+  "summary": "가구 유형별 환급 일정과 온라인 신청 링크 동선을 안내합니다.",
+  "category": "government",
+  "tags": ["정부", "에너지", "환급"],
+  "thumbnail": "/images/placeholders/p3.svg",
+  "publishedAt": "2026-02-17",
+  "updatedAt": "2026-02-19",
+  "status": "published",
+  "contentMd": "## 신청 일정\n\n가구 유형에 따라 신청 창구와 일정이 다릅니다.\n\n- 일반 가구: 3월\n- 취약 계층: 2월\n\n공식 공고문을 함께 확인하세요.",
+  "regions": ["ALL"],
+  "applicationPeriod": {
+    "start": "2026-02-15",
+    "end": "2026-04-15"
+  },
+  "benefit": {
+    "type": "CASH",
+    "amountText": "가구당 최대 35만원",
+    "paymentCycle": "ONCE"
+  },
+  "eligibility": [
+    "전기/가스 요금 고지서를 보유한 가구",
+    "세대주 본인 인증 가능자"
+  ],
+  "howToApply": [
+    "에너지지원 통합포털 로그인",
+    "환급 계좌 입력 후 제출"
+  ],
+  "documents": [
+    "본인 명의 계좌정보",
+    "최근 공공요금 고지서"
+  ],
+  "sourceLinks": [
+    {
+      "title": "정부24",
+      "url": "https://www.gov.kr/"
+    }
+  ],
+  "contact": "정부민원안내 110",
+  "organization": "산업통상자원부"
+}

@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import SiteHeader from '../../../../components/SiteHeader.astro';
+import PostCard from '../../../../components/PostCard.astro';
+import PaginationNav from '../../../../components/PaginationNav.astro';
+import { CATEGORIES, type CategorySlug } from '../../../../lib/categories';
+import { href } from '../../../../lib/href';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../../../lib/pagination';
+import { getPostsByCategory } from '../../../../lib/posts';
+
+export function getStaticPaths() {
+  return CATEGORIES.flatMap((category) => {
+    const posts = getPostsByCategory(category.slug);
+    const pages = totalPages(posts.length, PAGE_SIZE);
+
+    return Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2).map((pageNumber) => ({
+      params: { category: category.slug, page: String(pageNumber) },
+      props: { category, pageNumber },
+    }));
+  });
+}
+
+const { category, pageNumber } = Astro.props as {
+  category: { slug: CategorySlug; label: string };
+  pageNumber: number;
+};
+
+const allPosts = getPostsByCategory(category.slug);
+const pages = totalPages(allPosts.length, PAGE_SIZE);
+const posts = sliceByPage(allPosts, pageNumber, PAGE_SIZE);
+---
+
+<BaseLayout
+  title={`${category.label} - ${pageNumber}페이지 | 복지정보.com`}
+  description={`${category.label} 카테고리 ${pageNumber}페이지`}
+  canonicalPath={`/c/${category.slug}/page/${pageNumber}/`}
+>
+  <SiteHeader />
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{category.label}</h1>
+    <p class="text-sm text-slate-600">최신순 · {pageNumber} / {pages} 페이지</p>
+    <div class="flex gap-2">
+      <a href={href(`/c/${category.slug}/`)} class="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white">최신순</a>
+      <a
+        href={href(`/c/${category.slug}/deadline/`)}
+        class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+      >
+        마감 임박순
+      </a>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+
+  <PaginationNav basePath={`/c/${category.slug}/`} currentPage={pageNumber} totalPages={pages} />
+</BaseLayout>

@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { formatDate } from '../lib/date';
+import { href } from '../lib/href';
+import { getUpdates } from '../lib/updates';
+
+const updates = getUpdates();
+---
+
+<BaseLayout title="업데이트 | 복지정보.com" description="복지정보.com 공지 및 업데이트 로그" canonicalPath="/updates/">
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">업데이트</h1>
+    <p class="text-sm text-slate-600">서비스 공지 및 변경 로그</p>
+  </section>
+
+  <section class="space-y-3">
+    {updates.map((item) => (
+      <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p class="text-xs text-slate-500">{formatDate(item.date)}</p>
+        <h2 class="mt-1 text-lg font-semibold text-slate-900">{item.title}</h2>
+        <p class="mt-1 text-sm text-slate-600">{item.body}</p>
+        {item.link && (
+          <a href={href(item.link)} class="mt-2 inline-flex text-sm font-semibold text-sky-700 hover:underline">
+            관련 페이지 보기
+          </a>
+        )}
+      </article>
+    ))}
+  </section>
+</BaseLayout>

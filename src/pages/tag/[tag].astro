@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import PostCard from '../../components/PostCard.astro';
+import PaginationNav from '../../components/PaginationNav.astro';
+import { href } from '../../lib/href';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../lib/pagination';
+import { getAllPosts } from '../../lib/posts';
+import { decodeTag, encodeTag } from '../../lib/tagCodec';
+
+const allPosts = getAllPosts();
+
+export function getStaticPaths() {
+  const tags = [...new Set(getAllPosts().flatMap((post) => post.tags))];
+  return tags.map((tag) => ({ params: { tag: decodeTag(encodeTag(tag)) } }));
+}
+
+const tag = decodeTag(Astro.params.tag || '');
+const taggedPosts = allPosts.filter((post) => post.tags.includes(tag));
+const pages = totalPages(taggedPosts.length, PAGE_SIZE);
+const posts = sliceByPage(taggedPosts, 1, PAGE_SIZE);
+const basePath = `/tag/${encodeTag(tag)}/`;
+---
+
+<BaseLayout title={`태그: ${tag} | 복지정보.com`} description={`태그 ${tag} 글 목록`} canonicalPath={basePath}>
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">태그: {tag}</h1>
+    <p class="text-sm text-slate-600">총 {taggedPosts.length}건</p>
+    <a href={href(`/search/?tag=${encodeURIComponent(tag)}`)} class="text-sm font-semibold text-sky-700 hover:underline">
+      검색에서 보기
+    </a>
+  </section>
+
+  {
+    posts.length > 0 ? (
+      <>
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => <PostCard post={post} />)}
+        </section>
+        <PaginationNav basePath={basePath} currentPage={1} totalPages={pages} />
+      </>
+    ) : (
+      <p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">태그에 해당하는 글이 없습니다.</p>
+    )
+  }
+</BaseLayout>
