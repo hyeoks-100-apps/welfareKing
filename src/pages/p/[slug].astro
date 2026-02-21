@@ -2,6 +2,7 @@
 import { marked } from 'marked';
 import SiteHeader from '../../components/SiteHeader.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostInfoBox from '../../components/PostInfoBox.astro';
 import { CATEGORIES } from '../../lib/categories';
 import { formatDate } from '../../lib/date';
 import { href } from '../../lib/href';
@@ -38,7 +39,9 @@ const html = withBaseInHtml(marked.parse(post.contentMd) as string);
       <p class="text-xs text-slate-500">발행일: {formatDate(post.publishedAt)}</p>
     </header>
 
-    <div class="prose prose-slate mt-6 max-w-none" set:html={html}></div>
+    <PostInfoBox post={post} />
+
+    <article class="prose prose-slate mt-6 max-w-none" set:html={html}></article>
 
     <footer class="mt-8 border-t border-slate-200 pt-5">
       <a href={href(`/c/${post.category}/`)} class="text-sm font-semibold text-sky-700 hover:underline">

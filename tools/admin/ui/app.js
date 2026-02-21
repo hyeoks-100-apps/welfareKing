@@ -8,9 +8,27 @@ const el = {
   category: document.getElementById('category'),
   status: document.getElementById('status'),
   tags: document.getElementById('tags'),
+  regions: document.getElementById('regions'),
   publishedAt: document.getElementById('publishedAt'),
+  updatedAt: document.getElementById('updatedAt'),
   thumbnail: document.getElementById('thumbnail'),
   thumbnailUpload: document.getElementById('thumbnail-upload'),
+  periodStart: document.getElementById('periodStart'),
+  periodEnd: document.getElementById('periodEnd'),
+  periodNote: document.getElementById('periodNote'),
+  benefitType: document.getElementById('benefitType'),
+  benefitAmountText: document.getElementById('benefitAmountText'),
+  benefitPaymentCycle: document.getElementById('benefitPaymentCycle'),
+  eligibility: document.getElementById('eligibility'),
+  howToApply: document.getElementById('howToApply'),
+  documents: document.getElementById('documents'),
+  organization: document.getElementById('organization'),
+  contact: document.getElementById('contact'),
+  sourceTitle: document.getElementById('sourceTitle'),
+  sourceUrl: document.getElementById('sourceUrl'),
+  btnAddSource: document.getElementById('btn-add-source'),
+  sourceList: document.getElementById('source-list'),
+  btnInsertTemplate: document.getElementById('btn-insert-template'),
   contentMd: document.getElementById('contentMd'),
   contentUpload: document.getElementById('content-upload'),
   btnUploadContent: document.getElementById('btn-upload-content'),
@@ -23,48 +41,36 @@ const el = {
 
 let currentSlug = '';
 let previewTimer;
+let sourceLinksState = [];
+
+const CONTENT_TEMPLATE = `## 핵심 요약
+## 지원 내용
+## 대상/조건
+## 신청 기간
+## 신청 방법
+## 필요 서류
+## 참고/출처`;
 
 const log = (msg) => {
   el.log.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n${el.log.textContent}`.slice(0, 5000);
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
-
 const random6 = () => Math.random().toString(36).slice(2, 8);
+const createDraftSlug = (category) => `${category}-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${random6()}`;
 
-const createDraftSlug = (category) => {
-  const ymd = new Date().toISOString().slice(0, 10).replaceAll('-', '');
-  return `${category}-${ymd}-${random6()}`;
-};
+const splitLineItems = (value) =>
+  String(value || '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-const getFormData = () => ({
-  id: el.slug.value.trim(),
-  slug: el.slug.value.trim(),
-  title: el.title.value.trim(),
-  summary: el.summary.value.trim(),
-  category: el.category.value,
-  tags: el.tags.value
+const splitCommaItems = (value, fallback = []) => {
+  const parsed = String(value || '')
     .split(',')
     .map((s) => s.trim())
-    .filter(Boolean),
-  thumbnail: el.thumbnail.value.trim() || '/images/placeholders/p1.svg',
-  publishedAt: el.publishedAt.value || today(),
-  status: el.status.value,
-  contentMd: el.contentMd.value,
-});
-
-const setFormData = (post) => {
-  el.slug.value = post.slug || '';
-  el.title.value = post.title || '';
-  el.summary.value = post.summary || '';
-  el.category.value = post.category || 'youth';
-  el.status.value = post.status || 'draft';
-  el.tags.value = (post.tags || []).join(', ');
-  el.publishedAt.value = post.publishedAt || today();
-  el.thumbnail.value = post.thumbnail || '/images/placeholders/p1.svg';
-  el.contentMd.value = post.contentMd || '';
-  currentSlug = post.slug || '';
-  renderPreview();
+    .filter(Boolean);
+  return parsed.length > 0 ? parsed : fallback;
 };
 
 const fetchJson = async (url, options) => {
@@ -74,6 +80,101 @@ const fetchJson = async (url, options) => {
     throw new Error(data.error ? JSON.stringify(data.error) : `request failed: ${res.status}`);
   }
   return data;
+};
+
+const renderSourceLinks = () => {
+  el.sourceList.innerHTML = '';
+  sourceLinksState.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.className = 'inline';
+
+    const text = document.createElement('code');
+    text.textContent = `${item.title} - ${item.url}`;
+
+    const btnDelete = document.createElement('button');
+    btnDelete.type = 'button';
+    btnDelete.textContent = '삭제';
+    btnDelete.addEventListener('click', () => {
+      sourceLinksState = sourceLinksState.filter((_, i) => i !== index);
+      renderSourceLinks();
+    });
+
+    li.append(text, btnDelete);
+    el.sourceList.append(li);
+  });
+};
+
+const getFormData = () => ({
+  id: el.slug.value.trim(),
+  slug: el.slug.value.trim(),
+  title: el.title.value.trim(),
+  summary: el.summary.value.trim(),
+  category: el.category.value,
+  tags: splitCommaItems(el.tags.value),
+  regions: splitCommaItems(el.regions.value, ['ALL']),
+  thumbnail: el.thumbnail.value.trim() || '/images/placeholders/p1.svg',
+  publishedAt: el.publishedAt.value || today(),
+  updatedAt: el.updatedAt.value || undefined,
+  status: el.status.value,
+  applicationPeriod: {
+    start: el.periodStart.value || undefined,
+    end: el.periodEnd.value || undefined,
+    note: el.periodNote.value.trim() || undefined,
+  },
+  benefit: {
+    type: el.benefitType.value || undefined,
+    amountText: el.benefitAmountText.value.trim() || undefined,
+    paymentCycle: el.benefitPaymentCycle.value || undefined,
+  },
+  eligibility: splitLineItems(el.eligibility.value),
+  howToApply: splitLineItems(el.howToApply.value),
+  documents: splitLineItems(el.documents.value),
+  sourceLinks: sourceLinksState,
+  organization: el.organization.value.trim(),
+  contact: el.contact.value.trim(),
+  contentMd: el.contentMd.value,
+});
+
+const setFormData = (post) => {
+  const p = {
+    ...post,
+    regions: post.regions?.length ? post.regions : ['ALL'],
+    applicationPeriod: post.applicationPeriod || {},
+    benefit: post.benefit || {},
+    eligibility: post.eligibility || [],
+    howToApply: post.howToApply || [],
+    documents: post.documents || [],
+    sourceLinks: post.sourceLinks || [],
+    organization: post.organization || '',
+    contact: post.contact || '',
+  };
+
+  el.slug.value = p.slug || '';
+  el.title.value = p.title || '';
+  el.summary.value = p.summary || '';
+  el.category.value = p.category || 'youth';
+  el.status.value = p.status || 'draft';
+  el.tags.value = (p.tags || []).join(', ');
+  el.regions.value = (p.regions || ['ALL']).join(', ');
+  el.publishedAt.value = p.publishedAt || today();
+  el.updatedAt.value = p.updatedAt || '';
+  el.thumbnail.value = p.thumbnail || '/images/placeholders/p1.svg';
+  el.periodStart.value = p.applicationPeriod.start || '';
+  el.periodEnd.value = p.applicationPeriod.end || '';
+  el.periodNote.value = p.applicationPeriod.note || '';
+  el.benefitType.value = p.benefit.type || '';
+  el.benefitAmountText.value = p.benefit.amountText || '';
+  el.benefitPaymentCycle.value = p.benefit.paymentCycle || '';
+  el.eligibility.value = p.eligibility.join('\n');
+  el.howToApply.value = p.howToApply.join('\n');
+  el.documents.value = p.documents.join('\n');
+  sourceLinksState = p.sourceLinks;
+  renderSourceLinks();
+  el.organization.value = p.organization;
+  el.contact.value = p.contact;
+  el.contentMd.value = p.contentMd || '';
+  currentSlug = p.slug || '';
+  renderPreview();
 };
 
 const loadPosts = async () => {
@@ -103,6 +204,7 @@ const renderUploaded = (paths) => {
     text.textContent = filePath;
 
     const btnUrl = document.createElement('button');
+    btnUrl.type = 'button';
     btnUrl.textContent = 'URL 복사';
     btnUrl.addEventListener('click', async () => {
       await navigator.clipboard.writeText(filePath);
@@ -110,6 +212,7 @@ const renderUploaded = (paths) => {
     });
 
     const btnMd = document.createElement('button');
+    btnMd.type = 'button';
     btnMd.textContent = '마크다운 복사';
     btnMd.addEventListener('click', async () => {
       await navigator.clipboard.writeText(code);
@@ -121,12 +224,13 @@ const renderUploaded = (paths) => {
   }
 };
 
-const uploadFilesForSlug = async (slug, fileList) => {
+const uploadFilesForSlug = async (slug, fileList, kind = 'content') => {
   if (!slug) throw new Error('slug가 필요합니다. 먼저 저장하거나 slug를 입력하세요.');
   if (!fileList || fileList.length === 0) return [];
 
   const fd = new FormData();
   fd.append('slug', slug);
+  fd.append('kind', kind);
   for (const file of fileList) {
     fd.append('files', file);
   }
@@ -154,6 +258,25 @@ const debouncePreview = () => {
   previewTimer = setTimeout(renderPreview, 300);
 };
 
+el.btnAddSource.addEventListener('click', () => {
+  const title = el.sourceTitle.value.trim();
+  const url = el.sourceUrl.value.trim();
+  if (!title || !url) return;
+  sourceLinksState.push({ title, url });
+  el.sourceTitle.value = '';
+  el.sourceUrl.value = '';
+  renderSourceLinks();
+});
+
+el.btnInsertTemplate.addEventListener('click', () => {
+  if (!el.contentMd.value.trim()) {
+    el.contentMd.value = CONTENT_TEMPLATE;
+  } else {
+    el.contentMd.value += `\n\n${CONTENT_TEMPLATE}`;
+  }
+  debouncePreview();
+});
+
 el.btnNew.addEventListener('click', () => {
   const category = el.category.value || 'youth';
   const slug = createDraftSlug(category);
@@ -163,9 +286,18 @@ el.btnNew.addEventListener('click', () => {
     summary: '',
     category,
     tags: [],
+    regions: ['ALL'],
     thumbnail: '/images/placeholders/p1.svg',
     publishedAt: today(),
     status: 'draft',
+    applicationPeriod: {},
+    benefit: {},
+    eligibility: [],
+    howToApply: [],
+    documents: [],
+    sourceLinks: [],
+    organization: '',
+    contact: '',
     contentMd: '## 새 글\n\n내용을 입력하세요.',
   });
   log(`새 글 생성: ${slug}`);
@@ -194,7 +326,7 @@ el.form.addEventListener('submit', async (event) => {
 
 el.thumbnailUpload.addEventListener('change', async () => {
   try {
-    const files = await uploadFilesForSlug(el.slug.value.trim(), el.thumbnailUpload.files);
+    const files = await uploadFilesForSlug(el.slug.value.trim(), el.thumbnailUpload.files, 'thumbnail');
     if (files[0]) {
       el.thumbnail.value = files[0];
       renderUploaded(files);
@@ -208,7 +340,7 @@ el.thumbnailUpload.addEventListener('change', async () => {
 
 el.btnUploadContent.addEventListener('click', async () => {
   try {
-    const files = await uploadFilesForSlug(el.slug.value.trim(), el.contentUpload.files);
+    const files = await uploadFilesForSlug(el.slug.value.trim(), el.contentUpload.files, 'content');
     renderUploaded(files);
     el.contentUpload.value = '';
     log(`content files uploaded: ${files.length}`);

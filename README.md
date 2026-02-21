@@ -18,6 +18,7 @@ npm run build
 ## 게시글 데이터
 
 - 게시글은 `data/posts/*.json` 파일로 관리합니다.
+- 기본 필드 외에 구조화 필드(`regions`, `applicationPeriod`, `benefit`, `eligibility`, `howToApply`, `documents`, `sourceLinks`, `organization`, `contact`)를 지원합니다.
 - `status: "draft"` 글은 로컬 개발(`npm run dev`)에서만 보이고, 프로덕션 빌드에서는 제외됩니다.
 
 ## 검색 페이지
@@ -31,6 +32,8 @@ npm run build
 - 접속: `http://localhost:4173`
 - 글 저장 위치: `data/posts/`
 - 이미지 저장 위치: `public/images/posts/`
+- 썸네일 업로드는 `kind=thumbnail`로 처리되어 `cover.webp`(또는 SVG면 `cover.svg`)로 저장됩니다.
+- `sharp`가 설치된 환경에서는 업로드 이미지를 최대 폭 1400px로 리사이즈하고 webp(quality 82)로 자동 최적화합니다(옵션).
 - 어드민에서 커밋&푸시(또는 직접 `git push`)하면 GitHub Actions로 Pages 배포됩니다.
 
 ## 배포

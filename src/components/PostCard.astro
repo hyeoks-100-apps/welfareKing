@@ -18,7 +18,14 @@ const { post } = Astro.props;
     loading="lazy"
   />
   <div class="space-y-3 p-4">
-    <h3 class="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
+      {post.benefit.amountText && (
+        <span class="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+          {post.benefit.amountText}
+        </span>
+      )}
+    </div>
     <p class="line-clamp-2 text-sm text-slate-600">{post.summary}</p>
     <p class="text-xs text-slate-500">{formatDate(post.publishedAt)}</p>
     <a

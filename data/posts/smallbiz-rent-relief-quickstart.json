@@ -8,5 +8,37 @@
   "thumbnail": "/images/placeholders/p1.svg",
   "publishedAt": "2026-02-15",
   "status": "published",
-  "contentMd": "## 빠른 준비\n\n임대료 지원금은 매출 증빙과 임대차 계약정보가 중요합니다.\n\n- 부가세 신고자료\n- 임대차계약서 사본\n- 통장 사본"
+  "contentMd": "## 빠른 준비\n\n임대료 지원금은 매출 증빙과 임대차 계약정보가 중요합니다.\n\n- 부가세 신고자료\n- 임대차계약서 사본\n- 통장 사본",
+  "regions": ["SEOUL", "BUSAN"],
+  "applicationPeriod": {
+    "start": "2026-02-20",
+    "end": "2026-03-20",
+    "note": "지역별 접수 일정이 다를 수 있습니다."
+  },
+  "benefit": {
+    "type": "VOUCHER",
+    "amountText": "최대 60만원",
+    "paymentCycle": "ONCE"
+  },
+  "eligibility": [
+    "연 매출 10억원 이하 소상공인",
+    "사업자등록증 보유"
+  ],
+  "howToApply": [
+    "소상공인24 접속 후 지역사업 선택",
+    "서류 업로드 후 접수"
+  ],
+  "documents": [
+    "사업자등록증",
+    "임대차계약서",
+    "부가세 과세표준증명"
+  ],
+  "sourceLinks": [
+    {
+      "title": "소상공인24",
+      "url": "https://www.sbiz24.kr/"
+    }
+  ],
+  "contact": "소상공인 통합콜센터 1357",
+  "organization": "중소벤처기업부"
 }

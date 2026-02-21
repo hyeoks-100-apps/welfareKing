@@ -10,20 +10,20 @@ const postModules = import.meta.glob('../../data/posts/*.json', {
 }) as Record<string, { default: unknown }>;
 
 const parsedPosts: Post[] = Object.entries(postModules).map(([filePath, module]) => {
-  const parsed = PostSchema.safeParse(module.default);
+  try {
+    const parsed = PostSchema.parse(module.default);
 
-  if (!parsed.success) {
+    if (parsed.id !== parsed.slug) {
+      console.error(`[posts] id and slug mismatch in ${filePath}`);
+      throw new Error(`[posts] id must match slug: ${filePath}`);
+    }
+
+    return parsed;
+  } catch (error) {
     console.error(`[posts] Invalid post data in ${filePath}`);
-    console.error(parsed.error.format());
+    console.error(error);
     throw new Error(`[posts] Invalid post JSON schema: ${filePath}`);
   }
-
-  if (parsed.data.id !== parsed.data.slug) {
-    console.error(`[posts] id and slug mismatch in ${filePath}`);
-    throw new Error(`[posts] id must match slug: ${filePath}`);
-  }
-
-  return parsed.data;
 });
 
 function sortByPublishedAtDesc(posts: Post[]): Post[] {

@@ -9,5 +9,37 @@
   "publishedAt": "2026-02-20",
   "updatedAt": "2026-02-20",
   "status": "published",
-  "contentMd": "## 핵심 요약\n\n월세지원은 자격 확인과 서류 준비가 핵심입니다.\n\n- 주민등록등본\n- 임대차계약서\n- 소득 증빙\n\n신청 전에 필수 항목을 꼭 확인하세요."
+  "contentMd": "## 핵심 요약\n\n월세지원은 자격 확인과 서류 준비가 핵심입니다.\n\n- 주민등록등본\n- 임대차계약서\n- 소득 증빙\n\n![샘플 이미지](/images/placeholders/p1.svg)",
+  "regions": ["ALL"],
+  "applicationPeriod": {
+    "start": "2026-03-01",
+    "end": "2026-03-31",
+    "note": "지자체 예산 소진 시 조기 마감될 수 있습니다."
+  },
+  "benefit": {
+    "type": "CASH",
+    "amountText": "월 최대 20만원, 최대 12개월",
+    "paymentCycle": "MONTHLY"
+  },
+  "eligibility": [
+    "만 19세~34세 무주택 청년",
+    "중위소득 150% 이하 가구"
+  ],
+  "howToApply": [
+    "복지로 또는 지자체 포털에서 온라인 신청",
+    "신청 후 보완 요청 문자를 확인하고 7일 내 제출"
+  ],
+  "documents": [
+    "주민등록등본",
+    "임대차계약서 사본",
+    "소득금액증명"
+  ],
+  "sourceLinks": [
+    {
+      "title": "복지로 공고",
+      "url": "https://www.bokjiro.go.kr/"
+    }
+  ],
+  "contact": "청년정책 콜센터 1234-5678",
+  "organization": "보건복지부 청년정책과"
 }
