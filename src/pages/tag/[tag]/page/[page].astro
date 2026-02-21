@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import SiteHeader from '../../../../components/SiteHeader.astro';
+import PostCard from '../../../../components/PostCard.astro';
+import PaginationNav from '../../../../components/PaginationNav.astro';
+import { PAGE_SIZE, sliceByPage, totalPages } from '../../../../lib/pagination';
+import { getAllPosts } from '../../../../lib/posts';
+import { decodeTag, encodeTag } from '../../../../lib/tagCodec';
+
+export function getStaticPaths() {
+  const tags = [...new Set(getAllPosts().flatMap((post) => post.tags))];
+
+  return tags.flatMap((tag) => {
+    const filtered = getAllPosts().filter((post) => post.tags.includes(tag));
+    const pages = totalPages(filtered.length, PAGE_SIZE);
+
+    return Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2).map((pageNumber) => ({
+      params: { tag: decodeTag(encodeTag(tag)), page: String(pageNumber) },
+      props: { tag, pageNumber },
+    }));
+  });
+}
+
+const { tag, pageNumber } = Astro.props as { tag: string; pageNumber: number };
+const taggedPosts = getAllPosts().filter((post) => post.tags.includes(tag));
+const pages = totalPages(taggedPosts.length, PAGE_SIZE);
+const posts = sliceByPage(taggedPosts, pageNumber, PAGE_SIZE);
+const encodedTag = encodeTag(decodeTag(tag));
+const basePath = `/tag/${encodedTag}/`;
+---
+
+<BaseLayout
+  title={`태그: ${tag} - ${pageNumber}페이지 | 복지정보.com`}
+  description={`태그 ${tag} 글 목록 ${pageNumber}페이지`}
+  canonicalPath={`/tag/${encodedTag}/page/${pageNumber}/`}
+>
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">태그: {tag}</h1>
+    <p class="text-sm text-slate-600">{pageNumber} / {pages} 페이지</p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+
+  <PaginationNav basePath={basePath} currentPage={pageNumber} totalPages={pages} />
+</BaseLayout>

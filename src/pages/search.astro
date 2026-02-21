@@ -1,0 +1,294 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { CATEGORIES } from '../lib/categories';
+import { href } from '../lib/href';
+
+const indexUrl = href('/data/posts.index.json');
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<BaseLayout
+  title="검색 | 복지정보.com"
+  description="지원금/복지혜택 글 검색"
+  canonicalPath="/search/"
+  ogType="website"
+>
+  <SiteHeader />
+
+  <section class="space-y-2 pb-4">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">검색</h1>
+    <p class="text-sm text-slate-600">지원금/복지혜택 글을 제목, 요약, 태그로 검색할 수 있어요.</p>
+  </section>
+
+  <section
+    id="search-app"
+    data-index-url={indexUrl}
+    data-base-url={baseUrl}
+    data-categories={JSON.stringify(CATEGORIES)}
+    class="space-y-4"
+  >
+    <div class="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px]">
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium text-slate-700">검색어</span>
+        <input
+          id="search-q"
+          type="search"
+          placeholder="예: 청년, 월세, 돌봄수당..."
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-sky-400 transition focus:ring-2"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium text-slate-700">카테고리</span>
+        <select
+          id="search-cat"
+          class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-sky-400 transition focus:ring-2"
+        >
+          <option value="">전체</option>
+          {CATEGORIES.map((category) => <option value={category.slug}>{category.label}</option>)}
+        </select>
+      </label>
+    </div>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p class="mb-2 text-sm font-medium text-slate-700">태그 필터</p>
+      <div id="search-tags" class="flex flex-wrap gap-2"></div>
+    </section>
+
+    <section>
+      <p id="search-count" class="mb-3 text-sm text-slate-600"></p>
+      <div id="search-results" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <p id="search-empty" class="hidden rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-slate-500">
+        검색 결과가 없어요
+      </p>
+    </section>
+  </section>
+
+  <script type="module">
+    import Fuse from 'fuse.js';
+
+    const app = document.getElementById('search-app');
+    if (!app) throw new Error('search app root not found');
+
+    const indexUrl = app.dataset.indexUrl;
+    const baseUrl = app.dataset.baseUrl || '/';
+    const categories = JSON.parse(app.dataset.categories || '[]');
+
+    const qInput = document.getElementById('search-q');
+    const catSelect = document.getElementById('search-cat');
+    const tagsWrap = document.getElementById('search-tags');
+    const countEl = document.getElementById('search-count');
+    const resultsEl = document.getElementById('search-results');
+    const emptyEl = document.getElementById('search-empty');
+
+    const categoryLabelMap = new Map(categories.map((c) => [c.slug, c.label]));
+
+    const normalizeBase = (base) => (base.endsWith('/') ? base : `${base}/`);
+    const withBase = (path) => {
+      const normalized = normalizeBase(baseUrl);
+      if (path === '/') return normalized;
+      const trimmed = path.startsWith('/') ? path.slice(1) : path;
+      return `${normalized}${trimmed}`;
+    };
+
+    const formatDate = (iso) =>
+      new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' }).format(
+        new Date(`${iso}T00:00:00`)
+      );
+
+    const getKstToday = () =>
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date());
+
+    const toDayNum = (ymd) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || '');
+      if (!m) return Number.NaN;
+      const [, y, mo, d] = m;
+      return Math.floor(Date.UTC(Number(y), Number(mo) - 1, Number(d)) / 86400000);
+    };
+
+    const getDeadline = (endYmd) => {
+      if (!endYmd) return null;
+      const diff = toDayNum(endYmd) - toDayNum(getKstToday());
+      if (Number.isNaN(diff)) return null;
+      if (diff < 0) return { text: '마감', className: 'bg-slate-100 text-slate-600' };
+      if (diff === 0) return { text: '오늘 마감', className: 'bg-rose-100 text-rose-700' };
+      if (diff <= 7) return { text: `D-${diff}`, className: 'bg-amber-100 text-amber-700' };
+      return null;
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    let selectedTag = params.get('tag') || '';
+    const initialQ = params.get('q') || '';
+    const initialCat = params.get('cat') || '';
+
+    qInput.value = initialQ;
+    catSelect.value = initialCat;
+
+    const posts = await fetch(indexUrl).then((res) => {
+      if (!res.ok) throw new Error(`failed to fetch posts index: ${res.status}`);
+      return res.json();
+    });
+
+    const sortedPosts = [...posts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+
+    const tagCount = new Map();
+    for (const post of sortedPosts) {
+      for (const tag of post.tags || []) {
+        tagCount.set(tag, (tagCount.get(tag) || 0) + 1);
+      }
+    }
+
+    const topTags = [...tagCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([tag]) => tag);
+
+    const fuse = new Fuse(sortedPosts, {
+      keys: ['title', 'summary', 'tags'],
+      threshold: 0.35,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+    });
+
+    const updateUrl = () => {
+      const next = new URLSearchParams();
+      const q = qInput.value.trim();
+      const cat = catSelect.value;
+      if (q) next.set('q', q);
+      if (cat) next.set('cat', cat);
+      if (selectedTag) next.set('tag', selectedTag);
+      const query = next.toString();
+      const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+      history.replaceState({}, '', nextUrl);
+    };
+
+    const createTagButton = (tag) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = `#${tag}`;
+      const active = selectedTag === tag;
+      btn.className = active
+        ? 'rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white'
+        : 'rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200';
+      btn.addEventListener('click', () => {
+        selectedTag = selectedTag === tag ? '' : tag;
+        render();
+      });
+      return btn;
+    };
+
+    const renderTags = () => {
+      tagsWrap.innerHTML = '';
+      for (const tag of topTags) {
+        tagsWrap.append(createTagButton(tag));
+      }
+    };
+
+    const createBadge = (text, className) => {
+      const span = document.createElement('span');
+      span.className = `rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`;
+      span.textContent = text;
+      return span;
+    };
+
+    const createResultCard = (post) => {
+      const article = document.createElement('article');
+      article.className =
+        'overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md';
+
+      const img = document.createElement('img');
+      img.src = withBase(post.thumbnail);
+      img.alt = post.title;
+      img.loading = 'lazy';
+      img.className = 'h-40 w-full object-cover';
+
+      const body = document.createElement('div');
+      body.className = 'space-y-2 p-4';
+
+      const rowTop = document.createElement('div');
+      rowTop.className = 'flex items-start justify-between gap-2';
+
+      const title = document.createElement('h3');
+      title.className = 'line-clamp-2 text-base font-semibold text-slate-900';
+      title.textContent = post.title;
+
+      const badges = document.createElement('div');
+      badges.className = 'flex shrink-0 flex-col items-end gap-1';
+
+      if (post.benefit?.amountText) {
+        badges.append(createBadge(post.benefit.amountText, 'bg-emerald-50 text-emerald-700'));
+      }
+
+      const deadline = getDeadline(post.applicationPeriod?.end);
+      if (deadline) {
+        badges.append(createBadge(deadline.text, deadline.className));
+      }
+
+      rowTop.append(title, badges);
+
+      const cat = document.createElement('p');
+      cat.className = 'text-xs font-semibold text-sky-700';
+      cat.textContent = categoryLabelMap.get(post.category) || post.category;
+
+      const summary = document.createElement('p');
+      summary.className = 'line-clamp-2 text-sm text-slate-600';
+      summary.textContent = post.summary;
+
+      const date = document.createElement('p');
+      date.className = 'text-xs text-slate-500';
+      date.textContent = formatDate(post.publishedAt);
+
+      const link = document.createElement('a');
+      link.href = withBase(`/p/${post.slug}/`);
+      link.className = 'inline-flex text-sm font-semibold text-sky-700 hover:underline';
+      link.textContent = '... 더보기';
+
+      body.append(cat, rowTop, summary, date, link);
+      article.append(img, body);
+      return article;
+    };
+
+    const runSearch = () => {
+      const q = qInput.value.trim();
+      const cat = catSelect.value;
+
+      const base = q ? fuse.search(q).map((result) => result.item) : sortedPosts.slice(0, 24);
+
+      return base.filter((post) => {
+        if (cat && post.category !== cat) return false;
+        if (selectedTag && !(post.tags || []).includes(selectedTag)) return false;
+        return true;
+      });
+    };
+
+    const renderResults = (list) => {
+      resultsEl.innerHTML = '';
+      if (list.length === 0) {
+        emptyEl.classList.remove('hidden');
+      } else {
+        emptyEl.classList.add('hidden');
+        for (const post of list) {
+          resultsEl.append(createResultCard(post));
+        }
+      }
+      countEl.textContent = `검색 결과 ${list.length}건`;
+    };
+
+    const render = () => {
+      updateUrl();
+      renderTags();
+      renderResults(runSearch());
+    };
+
+    qInput.addEventListener('input', render);
+    catSelect.addEventListener('change', render);
+
+    render();
+  </script>
+</BaseLayout>
