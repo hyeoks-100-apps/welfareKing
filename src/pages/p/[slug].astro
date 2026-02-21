@@ -1,0 +1,52 @@
+---
+import { marked } from 'marked';
+import SiteHeader from '../../components/SiteHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostInfoBox from '../../components/PostInfoBox.astro';
+import { CATEGORIES } from '../../lib/categories';
+import { formatDate } from '../../lib/date';
+import { href } from '../../lib/href';
+import { getAllPosts, getPostBySlug } from '../../lib/posts';
+import { withBaseInHtml } from '../../lib/withBaseInHtml';
+
+export function getStaticPaths() {
+  const posts = getAllPosts({ includeDrafts: import.meta.env.DEV });
+  return posts.map((post) => ({ params: { slug: post.slug } }));
+}
+
+const slug = Astro.params.slug;
+const post = slug
+  ? getPostBySlug(slug, { includeDrafts: import.meta.env.DEV })
+  : undefined;
+
+if (!post) {
+  return Astro.redirect(href('/'));
+}
+
+const categoryLabel = CATEGORIES.find((category) => category.slug === post.category)?.label ??
+  post.category;
+
+const html = withBaseInHtml(marked.parse(post.contentMd) as string);
+---
+
+<BaseLayout title={`${post.title} | 복지정보.com`} description={post.summary}>
+  <SiteHeader />
+  <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <header class="space-y-3 border-b border-slate-200 pb-5">
+      <p class="text-sm font-semibold text-sky-700">{categoryLabel}</p>
+      <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{post.title}</h1>
+      <p class="text-sm text-slate-600">{post.summary}</p>
+      <p class="text-xs text-slate-500">발행일: {formatDate(post.publishedAt)}</p>
+    </header>
+
+    <PostInfoBox post={post} />
+
+    <article class="prose prose-slate mt-6 max-w-none" set:html={html}></article>
+
+    <footer class="mt-8 border-t border-slate-200 pt-5">
+      <a href={href(`/c/${post.category}/`)} class="text-sm font-semibold text-sky-700 hover:underline">
+        목록으로
+      </a>
+    </footer>
+  </article>
+</BaseLayout>
