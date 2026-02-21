@@ -35,7 +35,7 @@ npm run build
 
 - RSS: `/rss.xml`
 - Robots: `/robots.txt`
-- Sitemap: Astro sitemap integration으로 자동 생성 (`/sitemap-index.xml`)
+- Sitemap: 정적 라우트로 생성 (`/sitemap-index.xml`)
 - 페이지별 OG/canonical/meta/JSON-LD(상세 Article)를 기본 제공
 
 ## 로컬 어드민 (MVP)
