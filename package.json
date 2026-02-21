@@ -10,8 +10,8 @@
     "admin": "node tools/admin/server.mjs"
   },
   "devDependencies": {
-    "@astrojs/rss": "^4.0.9",
-    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/rss": "^3.0.0",
+    "@astrojs/sitemap": "^2.2.0",
     "@astrojs/tailwind": "^5.1.3",
     "@tailwindcss/typography": "^0.5.15",
     "astro": "^4.16.18",
