@@ -7,12 +7,16 @@ import { CATEGORIES } from '../../lib/categories';
 import { formatDate } from '../../lib/date';
 import { href } from '../../lib/href';
 import { getAllPosts, getPostBySlug } from '../../lib/posts';
+import { getAllRedirectSlugs, getRedirectTarget } from '../../lib/redirects';
 import { encodeTag } from '../../lib/tagCodec';
 import { withBaseInHtml } from '../../lib/withBaseInHtml';
 
 export function getStaticPaths() {
   const posts = getAllPosts({ includeDrafts: import.meta.env.DEV });
-  return posts.map((post) => ({ params: { slug: post.slug } }));
+  const postSlugs = new Set(posts.map((post) => post.slug));
+  const redirectSlugs = getAllRedirectSlugs().filter((slug) => !postSlugs.has(slug));
+
+  return [...postSlugs, ...redirectSlugs].map((slug) => ({ params: { slug } }));
 }
 
 const slug = Astro.params.slug;
@@ -20,8 +24,37 @@ const post = slug
   ? getPostBySlug(slug, { includeDrafts: import.meta.env.DEV })
   : undefined;
 
-if (!post) {
+const redirectTarget = slug && !post ? getRedirectTarget(slug) : null;
+const redirectHref = redirectTarget ? href(`/p/${redirectTarget}/`) : null;
+
+if (!post && !redirectTarget) {
   return Astro.redirect(href('/'));
+}
+
+if (!post && redirectTarget && redirectHref) {
+  const canonicalTarget = Astro.site ? new URL(redirectHref, Astro.site).toString() : undefined;
+
+  return (
+    <BaseLayout
+      title="이동 중… | 복지정보.com"
+      description="문서가 새 주소로 이동했습니다."
+      canonicalPath={`/p/${redirectTarget}/`}
+    >
+      <meta name="robots" content="noindex, follow" />
+      <meta http-equiv="refresh" content={`0;url=${redirectHref}`} />
+      {canonicalTarget && <link rel="canonical" href={canonicalTarget} />}
+      <script type="module" define:vars={{ redirectHref }}>
+        window.location.replace(redirectHref);
+      </script>
+      <section class="mx-auto mt-20 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+        <h1 class="text-xl font-bold text-slate-900">페이지 이동 안내</h1>
+        <p class="mt-2 text-sm text-slate-600">요청하신 글이 새 주소로 이동했습니다.</p>
+        <a href={redirectHref} class="mt-4 inline-flex text-sm font-semibold text-sky-700 hover:underline">
+          새 주소로 이동하기
+        </a>
+      </section>
+    </BaseLayout>
+  );
 }
 
 const categoryLabel = CATEGORIES.find((category) => category.slug === post.category)?.label ?? post.category;

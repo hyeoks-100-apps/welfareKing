@@ -106,3 +106,15 @@ npm run og:gen:force
 ```
 
 - `sharp`가 없는 환경에서는 자동으로 스킵됩니다(빌드 실패 유발 안 함).
+
+## redirects.json (URL 유지)
+
+- `data/redirects.json`은 `{ "old-slug": "new-slug" }` 형태의 리다이렉트 맵입니다.
+- 중복 통합/아카이브 시 옛 `/p/<old-slug>/` 요청을 새 canonical 글로 안내합니다.
+- 상세 페이지 라우트에서 정적 redirect 페이지를 생성해 기존 링크 깨짐을 줄입니다.
+
+## 로컬 어드민 운영 컨트롤타워
+
+- **중복 탭**: normalize된 출처 URL 기준 중복 그룹을 확인하고 `통합(merge+archive+redirect)` 또는 `아카이브만` 실행.
+- **리뷰 탭**: 출처 없음/오래된 업데이트/마감 지남/썸네일 문제 글을 큐로 확인하고 바로 편집 또는 아카이브.
+- **편집 탭 SEO 미리보기**: 검색 스니펫 + OG 카드 미리보기 제공, 권장 길이 가이드(`title <= 55`, `description <= 155`) 경고 표시.
