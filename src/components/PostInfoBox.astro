@@ -1,0 +1,125 @@
+---
+import type { Post } from '../lib/postSchema';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+
+const benefitTypeLabel: Record<string, string> = {
+  CASH: '현금',
+  VOUCHER: '바우처',
+  LOAN: '대출',
+  TAX: '세제',
+  SERVICE: '서비스',
+  ETC: '기타',
+};
+
+const paymentCycleLabel: Record<string, string> = {
+  ONCE: '1회',
+  MONTHLY: '월별',
+  YEARLY: '연별',
+  ETC: '기타',
+};
+
+const period = post.applicationPeriod ?? {};
+const benefit = post.benefit ?? {};
+
+const periodText = period.start && period.end ? `${period.start} ~ ${period.end}` : period.start || period.end || '';
+const benefitParts = [benefit.amountText, benefit.type ? benefitTypeLabel[benefit.type] : ''].filter(Boolean);
+const benefitText = benefitParts.join(' · ');
+const paymentText = benefit.paymentCycle ? paymentCycleLabel[benefit.paymentCycle] : '';
+---
+
+<section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">지원 정보 요약</h2>
+
+  <div class="space-y-3 text-sm text-slate-700">
+    {
+      periodText && (
+        <div>
+          <p class="font-semibold text-slate-900">신청 기간</p>
+          <p>{periodText}</p>
+          {period.note && <p class="mt-1 text-xs text-slate-500">{period.note}</p>}
+        </div>
+      )
+    }
+
+    {
+      benefitText && (
+        <div>
+          <p class="font-semibold text-slate-900">지원 내용</p>
+          <p>
+            {benefitText}
+            {paymentText && <span class="text-slate-500"> ({paymentText})</span>}
+          </p>
+        </div>
+      )
+    }
+
+    {
+      post.eligibility.length > 0 && (
+        <div>
+          <p class="mb-1 font-semibold text-slate-900">대상/조건</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {post.eligibility.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      post.howToApply.length > 0 && (
+        <div>
+          <p class="mb-1 font-semibold text-slate-900">신청 방법</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {post.howToApply.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      post.documents.length > 0 && (
+        <div>
+          <p class="mb-1 font-semibold text-slate-900">필요 서류</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {post.documents.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      (post.organization || post.contact) && (
+        <div class="border-t border-slate-200 pt-3 text-xs text-slate-600">
+          {post.organization && <p>주관: {post.organization}</p>}
+          {post.contact && <p>문의: {post.contact}</p>}
+        </div>
+      )
+    }
+
+    {
+      post.sourceLinks.length > 0 && (
+        <div class="border-t border-slate-200 pt-3">
+          <p class="mb-1 font-semibold text-slate-900">출처/신청 링크</p>
+          <ul class="list-disc space-y-1 pl-5">
+            {post.sourceLinks.map((item) => (
+              <li>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sky-700 hover:underline"
+                >
+                  {item.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</section>
