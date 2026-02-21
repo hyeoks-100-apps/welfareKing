@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 import PostCard from '../../components/PostCard.astro';
 import PaginationNav from '../../components/PaginationNav.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import { CATEGORIES, type CategorySlug } from '../../lib/categories';
 import { href } from '../../lib/href';
 import { PAGE_SIZE, sliceByPage, totalPages } from '../../lib/pagination';
@@ -52,7 +53,12 @@ const pages = totalPages(allPosts.length, PAGE_SIZE);
         <PaginationNav basePath={`/c/${slug}/`} currentPage={1} totalPages={pages} />
       </>
     ) : (
-      <p class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">아직 등록된 글이 없습니다.</p>
+      <EmptyState
+        title="아직 등록된 글이 없어요"
+        description="다른 카테고리나 검색에서 최신 글을 확인해 보세요."
+        actionLabel="검색으로 이동"
+        actionHref="/search/"
+      />
     )
   }
 

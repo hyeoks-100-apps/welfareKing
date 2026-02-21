@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import { CATEGORIES } from '../lib/categories';
 import { href } from '../lib/href';
@@ -37,6 +38,7 @@ const baseUrl = import.meta.env.BASE_URL;
           placeholder="예: 청년, 월세, 돌봄수당..."
           class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none ring-sky-400 transition focus:ring-2"
         />
+        <span class="mt-1 block text-xs text-slate-500">초성 검색 예: ㅊㄴ(청년), ㅇㅅ(월세)</span>
       </label>
 
       <label class="block">
@@ -59,14 +61,24 @@ const baseUrl = import.meta.env.BASE_URL;
     <section>
       <p id="search-count" class="mb-3 text-sm text-slate-600"></p>
       <div id="search-results" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-      <p id="search-empty" class="hidden rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-slate-500">
-        검색 결과가 없어요
-      </p>
+      <div id="search-empty" class="hidden">
+        <EmptyState
+          title="검색 결과가 없어요"
+          description="다른 키워드로 검색해 보세요. 홈 또는 업데이트 페이지에서도 최신 글을 확인할 수 있어요."
+          actionLabel="홈으로 이동"
+          actionHref="/"
+        />
+        <div class="mt-3 text-center">
+          <a href={href('/updates/')} class="text-sm font-semibold text-sky-700 hover:underline">업데이트 보기</a>
+        </div>
+      </div>
     </section>
   </section>
 
   <script type="module">
     import Fuse from 'fuse.js';
+    import { imgVersion } from '../lib/imgVersion';
+    import { isChosungQuery, normalizeText, toChosung } from '../lib/hangul';
 
     const app = document.getElementById('search-app');
     if (!app) throw new Error('search app root not found');
@@ -135,7 +147,16 @@ const baseUrl = import.meta.env.BASE_URL;
       return res.json();
     });
 
-    const sortedPosts = [...posts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    const preparedPosts = posts.map((post) => {
+      const combined = `${post.title || ''} ${post.summary || ''} ${(post.tags || []).join(' ')}`;
+      return {
+        ...post,
+        _norm: normalizeText(combined),
+        _cho: toChosung(combined),
+      };
+    });
+
+    const sortedPosts = [...preparedPosts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
     const tagCount = new Map();
     for (const post of sortedPosts) {
@@ -150,7 +171,7 @@ const baseUrl = import.meta.env.BASE_URL;
       .map(([tag]) => tag);
 
     const fuse = new Fuse(sortedPosts, {
-      keys: ['title', 'summary', 'tags'],
+      keys: ['title', 'summary', 'tags', '_norm'],
       threshold: 0.35,
       ignoreLocation: true,
       minMatchCharLength: 2,
@@ -203,7 +224,8 @@ const baseUrl = import.meta.env.BASE_URL;
         'overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md';
 
       const img = document.createElement('img');
-      img.src = withBase(post.thumbnail);
+      const version = imgVersion(post);
+      img.src = `${withBase(post.thumbnail)}${version ? `?v=${version}` : ''}`;
       img.alt = post.title;
       img.loading = 'lazy';
       img.className = 'h-40 w-full object-cover';
@@ -254,17 +276,44 @@ const baseUrl = import.meta.env.BASE_URL;
       return article;
     };
 
-    const runSearch = () => {
-      const q = qInput.value.trim();
+    const applyFilters = (list) => {
       const cat = catSelect.value;
-
-      const base = q ? fuse.search(q).map((result) => result.item) : sortedPosts.slice(0, 24);
-
-      return base.filter((post) => {
+      return list.filter((post) => {
         if (cat && post.category !== cat) return false;
         if (selectedTag && !(post.tags || []).includes(selectedTag)) return false;
         return true;
       });
+    };
+
+    const runSearch = () => {
+      const q = qInput.value.trim();
+      if (!q) return applyFilters(sortedPosts.slice(0, 24));
+
+      if (isChosungQuery(q)) {
+        const qNorm = q.replace(/\s+/g, '');
+        return applyFilters(sortedPosts.filter((post) => post._cho.includes(qNorm)));
+      }
+
+      const qNorm = normalizeText(q);
+      const includesResults = sortedPosts.filter((post) => post._norm.includes(qNorm));
+      const fuseResults = fuse.search(q).map((result) => result.item);
+
+      const merged = [];
+      const seen = new Set();
+
+      for (const post of includesResults) {
+        if (seen.has(post.slug)) continue;
+        seen.add(post.slug);
+        merged.push(post);
+      }
+
+      for (const post of fuseResults) {
+        if (seen.has(post.slug)) continue;
+        seen.add(post.slug);
+        merged.push(post);
+      }
+
+      return applyFilters(merged);
     };
 
     const renderResults = (list) => {
@@ -277,7 +326,7 @@ const baseUrl = import.meta.env.BASE_URL;
           resultsEl.append(createResultCard(post));
         }
       }
-      countEl.textContent = `검색 결과 ${list.length}건`;
+      countEl.textContent = `${list.length}개 결과`;
     };
 
     const render = () => {
