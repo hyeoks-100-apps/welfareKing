@@ -6,6 +6,7 @@ import { z } from 'zod';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -103,8 +104,7 @@ function sanitizeFileName(input) {
 
 async function readPostFile(filePath) {
   const raw = await fs.readFile(filePath, 'utf-8');
-  const parsed = PostSchema.parse(JSON.parse(raw));
-  return parsed;
+  return PostSchema.parse(JSON.parse(raw));
 }
 
 async function listPostFilePaths() {
@@ -117,7 +117,32 @@ function isRasterMime(mime) {
   return ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/tiff'].includes(mime);
 }
 
-app.use(express.json({ limit: '5mb' }));
+function runNodeScript(scriptRelPath, args = []) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [scriptRelPath, ...args], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    let err = '';
+
+    child.stdout.on('data', (buf) => {
+      out += buf.toString();
+    });
+    child.stderr.on('data', (buf) => {
+      err += buf.toString();
+    });
+
+    child.on('close', (code) => {
+      resolve({ code: code ?? 1, out, err });
+    });
+  });
+}
+
+const QA_SCRIPT_MAP = {
+  content: 'tools/maintenance/check-content.mjs',
+  assets: 'tools/maintenance/check-assets.mjs',
+  links: 'tools/maintenance/check-links.mjs',
+};
+
+app.use(express.json({ limit: '8mb' }));
 app.use(express.static(uiDir));
 app.use(express.static(publicDir));
 
@@ -227,11 +252,17 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
       let outputExt = ext;
 
       if (canOptimize) {
-        outputBuffer = await sharp(file.buffer).resize({ width: 1400, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+        outputBuffer = await sharp(file.buffer)
+          .resize({ width: 1400, withoutEnlargement: true })
+          .webp({ quality: 82 })
+          .toBuffer();
         outputExt = '.webp';
       }
 
-      const fixedName = kind === 'thumbnail' ? `cover${outputExt}` : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${name}${outputExt}`;
+      const fixedName =
+        kind === 'thumbnail'
+          ? `cover${outputExt}`
+          : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${name}${outputExt}`;
       const absPath = path.join(dir, fixedName);
       await fs.writeFile(absPath, outputBuffer);
       files.push(`/images/posts/${slug}/${fixedName}`);
@@ -272,26 +303,82 @@ app.get('/api/git/status', async (_req, res) => {
   }
 });
 
+app.post('/api/qa/run', async (req, res) => {
+  const checks = Array.isArray(req.body?.checks) ? req.body.checks : [];
+  const options = req.body?.options ?? {};
+
+  const allowed = checks.filter((name) => Object.prototype.hasOwnProperty.call(QA_SCRIPT_MAP, name));
+  if (allowed.length === 0) {
+    return res.status(400).json({ ok: false, error: 'No valid checks specified' });
+  }
+
+  const results = [];
+  for (const name of allowed) {
+    const args = [];
+    if (name === 'links' && options.treat403AsWarning !== false) {
+      args.push('--treat-403-as-warning');
+    }
+
+    const run = await runNodeScript(QA_SCRIPT_MAP[name], args);
+    results.push({ name, ...run });
+  }
+
+  res.json({ ok: true, results });
+});
+
+app.post('/api/archive/run', async (req, res) => {
+  const olderThanDays = Number(req.body?.olderThanDays ?? 365);
+  const apply = Boolean(req.body?.apply);
+  const deleteImages = Boolean(req.body?.deleteImages);
+
+  const args = ['--older-than-days', String(Number.isFinite(olderThanDays) ? olderThanDays : 365)];
+  if (apply) args.push('--apply');
+  else args.push('--dry-run');
+  if (deleteImages) args.push('--delete-images');
+
+  const run = await runNodeScript('tools/maintenance/archive.mjs', args);
+  res.json({ ok: true, result: run });
+});
+
 app.post('/api/git/commit-push', async (req, res) => {
   const message = String(req.body?.message || '').trim();
+  const runChecks = req.body?.runChecks !== false;
+  const checks = Array.isArray(req.body?.checks) ? req.body.checks : ['content', 'assets'];
+
   if (!message) {
     return res.status(400).json({ ok: false, error: 'commit message is required' });
+  }
+
+  const qaResults = [];
+  if (runChecks) {
+    for (const name of checks) {
+      if (!Object.prototype.hasOwnProperty.call(QA_SCRIPT_MAP, name)) continue;
+      const run = await runNodeScript(QA_SCRIPT_MAP[name], name === 'links' ? ['--treat-403-as-warning'] : []);
+      qaResults.push({ name, ...run });
+      if (run.code !== 0) {
+        return res.status(400).json({
+          ok: false,
+          error: `pre-push check failed: ${name}`,
+          qaResults,
+        });
+      }
+    }
   }
 
   try {
     await git.add(['-A']);
     const statusAfterAdd = await git.status();
     if (statusAfterAdd.isClean()) {
-      return res.json({ ok: true, pushed: false, message: 'no changes' });
+      return res.json({ ok: true, pushed: false, message: 'no changes', qaResults });
     }
 
     await git.commit(message);
     await git.push();
 
-    res.json({ ok: true, pushed: true });
+    res.json({ ok: true, pushed: true, qaResults });
   } catch (error) {
     console.error('[admin] /api/git/commit-push error', error);
-    res.status(500).json({ ok: false, error: String(error) });
+    res.status(500).json({ ok: false, error: String(error), qaResults });
   }
 });
 

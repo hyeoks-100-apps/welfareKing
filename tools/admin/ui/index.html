@@ -10,6 +10,7 @@
     <header class="topbar">
       <h1>복지정보.com 로컬 어드민</h1>
       <div class="top-actions">
+        <label class="check-inline"><input id="run-checks-before-push" type="checkbox" checked /> 푸시 전 검사</label>
         <button id="btn-refresh-status">변경사항 확인</button>
         <button id="btn-commit-push" class="primary">커밋 & 푸시</button>
       </div>
@@ -139,6 +140,11 @@
             <textarea id="contentMd" rows="14" required></textarea>
           </label>
 
+          <section class="subgrid warning-box">
+            <h3>저장 전 간단 점검</h3>
+            <ul id="quick-warnings"></ul>
+          </section>
+
           <div class="actions">
             <button type="submit" class="primary">저장</button>
           </div>
@@ -158,8 +164,28 @@
           <div id="preview" class="preview"></div>
         </section>
 
+        <section class="subgrid ops-tools">
+          <h3>운영 도구</h3>
+          <div class="inline">
+            <button type="button" id="btn-qa-content">콘텐츠 검사</button>
+            <button type="button" id="btn-qa-assets">이미지 검사</button>
+            <button type="button" id="btn-qa-links">링크 검사(느림)</button>
+          </div>
+          <div class="row3">
+            <label>Archive 기준일(일)
+              <input id="archive-days" type="number" min="1" value="365" />
+            </label>
+            <label class="check-inline"><input id="archive-delete-images" type="checkbox" /> 이미지 폴더 삭제</label>
+            <div class="inline">
+              <button type="button" id="btn-archive-dry">Dry Run</button>
+              <button type="button" id="btn-archive-apply">Apply Archive</button>
+            </div>
+          </div>
+          <pre id="ops-output"></pre>
+        </section>
+
         <section>
-          <h3>작업 로그</h3>
+          <h3>로그</h3>
           <pre id="log"></pre>
         </section>
       </section>

@@ -58,3 +58,27 @@ npm run build
 
 - `Failed to create deployment (status: 404)`가 뜨면 저장소의 **Settings > Pages**에서 Source가 **GitHub Actions**인지 다시 확인하세요.
 - 조직/저장소 권한 정책으로 Pages API 접근이 막히면 저장소 관리자 권한으로 Pages를 먼저 활성화해야 할 수 있습니다.
+
+## 콘텐츠 운영 QA/아카이브
+
+### CLI 스크립트
+
+```bash
+npm run qa:content   # 필수값/길이/출처 URL/중복 출처 검사
+npm run qa:assets    # 썸네일/본문 이미지 누락 + 미사용 이미지 검사
+npm run qa:links     # 외부 링크 상태 검사(403은 기본 경고 처리)
+npm run archive:dry  # 아카이브 대상 미리보기(실제 이동 없음)
+npm run archive:apply
+```
+
+- 아카이브는 `data/posts/<slug>.json`을 `data/archive/<slug>.json`으로 이동합니다.
+- 사이트는 `data/posts`만 읽으므로, archive로 이동된 글은 자동으로 노출에서 제외됩니다.
+- 실제 이동/삭제는 `--apply`가 있을 때만 실행됩니다(안전 장치).
+
+### 로컬 어드민에서 운영 도구 실행
+
+- 어드민 UI의 **운영 도구** 섹션에서 아래 작업을 바로 실행할 수 있습니다.
+  - 콘텐츠 검사 / 이미지 검사 / 링크 검사
+  - 아카이브 Dry Run / Apply (`olderThanDays`, `deleteImages` 옵션 지원)
+- **커밋 & 푸시** 전에 `푸시 전 검사` 체크가 켜져 있으면 콘텐츠/이미지 검사를 선행하고,
+  실패 시 커밋/푸시를 중단합니다.

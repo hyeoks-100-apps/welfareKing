@@ -7,7 +7,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "admin": "node tools/admin/server.mjs"
+    "admin": "node tools/admin/server.mjs",
+    "qa:content": "node tools/maintenance/check-content.mjs",
+    "qa:assets": "node tools/maintenance/check-assets.mjs",
+    "qa:links": "node tools/maintenance/check-links.mjs --treat-403-as-warning",
+    "archive:dry": "node tools/maintenance/archive.mjs --older-than-days 365 --dry-run",
+    "archive:apply": "node tools/maintenance/archive.mjs --older-than-days 365 --apply"
   },
   "devDependencies": {
     "@astrojs/rss": "^4.0.9",
