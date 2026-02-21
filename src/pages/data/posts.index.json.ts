@@ -11,6 +11,8 @@ export const GET: APIRoute = () => {
     thumbnail: post.thumbnail,
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
+    applicationPeriod: post.applicationPeriod,
+    benefit: post.benefit,
   }));
 
   return new Response(JSON.stringify(items), {

@@ -26,6 +26,18 @@ npm run build
 - `/search/`에서 제목/요약/태그 기반 검색(Fuse.js)과 카테고리/태그 필터를 사용할 수 있습니다.
 - URL 쿼리 파라미터를 지원합니다: `q`(검색어), `cat`(카테고리 slug), `tag`(태그).
 
+## 마감 임박 UX
+
+- 홈의 “마감 임박” 섹션과 카드 배지는 KST(Asia/Seoul) 기준으로 계산됩니다.
+- 날짜가 바뀌면 schedule 재배포로 상태가 자동 갱신됩니다.
+
+## SEO 출력
+
+- RSS: `/rss.xml`
+- Robots: `/robots.txt`
+- Sitemap: Astro sitemap integration으로 자동 생성 (`/sitemap-index.xml`)
+- 페이지별 OG/canonical/meta/JSON-LD(상세 Article)를 기본 제공
+
 ## 로컬 어드민 (MVP)
 
 - 실행: `npm run admin`
@@ -38,7 +50,7 @@ npm run build
 
 ## 배포
 
-`main` 브랜치에 push 하면 GitHub Actions가 자동으로 빌드 후 Pages에 배포합니다.
+`main` 브랜치 push, 수동 실행, 매일 KST 00:10(UTC 15:10 cron) 스케줄로 GitHub Actions가 빌드 후 Pages에 배포합니다.
 
 > GitHub 저장소 설정에서 **Pages > Build and deployment > Source**를 **GitHub Actions**로 선택해야 정상 배포됩니다.
 

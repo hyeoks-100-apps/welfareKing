@@ -5,6 +5,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: '10 15 * * *'
 
 permissions:
   contents: read
@@ -35,11 +37,11 @@ jobs:
 
           if [[ "$REPO_NAME" == "$OWNER_NAME.github.io" ]]; then
             DEPLOY_BASE="/"
-            SITE_URL="https://$OWNER_NAME.github.io"
           else
             DEPLOY_BASE="/$REPO_NAME"
-            SITE_URL="https://$OWNER_NAME.github.io/$REPO_NAME"
           fi
+
+          SITE_URL="https://$OWNER_NAME.github.io"
 
           echo "deploy_base=$DEPLOY_BASE" >> "$GITHUB_OUTPUT"
           echo "site_url=$SITE_URL" >> "$GITHUB_OUTPUT"

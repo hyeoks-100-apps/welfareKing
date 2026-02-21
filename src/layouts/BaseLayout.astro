@@ -1,15 +1,25 @@
 ---
 import '../styles/global.css';
+import { href } from '../lib/href';
 
 interface Props {
   title?: string;
   description?: string;
+  canonicalPath?: string;
+  ogImagePath?: string;
+  ogType?: 'website' | 'article';
 }
 
 const {
   title = '복지정보.com',
   description = '복지정보.com - 지원금/생활경제 정보 아카이브',
+  canonicalPath = '/',
+  ogImagePath,
+  ogType = 'website',
 } = Astro.props;
+
+const canonicalUrl = Astro.site ? new URL(href(canonicalPath), Astro.site).toString() : undefined;
+const ogImageUrl = ogImagePath && Astro.site ? new URL(href(ogImagePath), Astro.site).toString() : undefined;
 ---
 
 <!doctype html>
@@ -19,6 +29,23 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+
+    <meta
+      name="twitter:card"
+      content={ogImageUrl ? 'summary_large_image' : 'summary'}
+    />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+
+    <link rel="alternate" type="application/rss+xml" title="복지정보.com RSS" href={href('/rss.xml')} />
   </head>
   <body>
     <div class="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">

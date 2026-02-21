@@ -1,5 +1,6 @@
 ---
 import { formatDate } from '../lib/date';
+import { getDeadlineLabel } from '../lib/deadline';
 import { href } from '../lib/href';
 import type { Post } from '../lib/postSchema';
 
@@ -8,6 +9,14 @@ interface Props {
 }
 
 const { post } = Astro.props;
+const deadline = getDeadlineLabel(post.applicationPeriod?.end);
+
+const deadlineClassByKind = {
+  expired: 'bg-slate-100 text-slate-600',
+  today: 'bg-rose-100 text-rose-700',
+  soon: 'bg-amber-100 text-amber-700',
+  none: 'bg-slate-100 text-slate-600',
+};
 ---
 
 <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -20,11 +29,21 @@ const { post } = Astro.props;
   <div class="space-y-3 p-4">
     <div class="flex items-start justify-between gap-2">
       <h3 class="line-clamp-2 text-lg font-semibold text-slate-900">{post.title}</h3>
-      {post.benefit.amountText && (
-        <span class="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-          {post.benefit.amountText}
-        </span>
-      )}
+      <div class="flex shrink-0 flex-col items-end gap-1">
+        {post.benefit.amountText && (
+          <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+            {post.benefit.amountText}
+          </span>
+        )}
+        {deadline && (
+          <span class:list={[
+            'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+            deadlineClassByKind[deadline.kind],
+          ]}>
+            {deadline.text}
+          </span>
+        )}
+      </div>
     </div>
     <p class="line-clamp-2 text-sm text-slate-600">{post.summary}</p>
     <p class="text-xs text-slate-500">{formatDate(post.publishedAt)}</p>
