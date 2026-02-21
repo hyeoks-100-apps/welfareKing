@@ -6,6 +6,7 @@ import { CATEGORIES } from '../../lib/categories';
 import { formatDate } from '../../lib/date';
 import { href } from '../../lib/href';
 import { getAllPosts, getPostBySlug } from '../../lib/posts';
+import { withBaseInHtml } from '../../lib/withBaseInHtml';
 
 export function getStaticPaths() {
   const posts = getAllPosts({ includeDrafts: import.meta.env.DEV });
@@ -24,7 +25,7 @@ if (!post) {
 const categoryLabel = CATEGORIES.find((category) => category.slug === post.category)?.label ??
   post.category;
 
-const html = marked.parse(post.contentMd) as string;
+const html = withBaseInHtml(marked.parse(post.contentMd) as string);
 ---
 
 <BaseLayout title={`${post.title} | 복지정보.com`} description={post.summary}>

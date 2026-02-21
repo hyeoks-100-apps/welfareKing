@@ -25,6 +25,14 @@ npm run build
 - `/search/`에서 제목/요약/태그 기반 검색(Fuse.js)과 카테고리/태그 필터를 사용할 수 있습니다.
 - URL 쿼리 파라미터를 지원합니다: `q`(검색어), `cat`(카테고리 slug), `tag`(태그).
 
+## 로컬 어드민 (MVP)
+
+- 실행: `npm run admin`
+- 접속: `http://localhost:4173`
+- 글 저장 위치: `data/posts/`
+- 이미지 저장 위치: `public/images/posts/`
+- 어드민에서 커밋&푸시(또는 직접 `git push`)하면 GitHub Actions로 Pages 배포됩니다.
+
 ## 배포
 
 `main` 브랜치에 push 하면 GitHub Actions가 자동으로 빌드 후 Pages에 배포합니다.
