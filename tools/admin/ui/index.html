@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>복지정보.com Admin</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>복지정보.com 로컬 어드민</h1>
+      <div class="top-actions">
+        <button id="btn-refresh-status">변경사항 확인</button>
+        <button id="btn-commit-push" class="primary">커밋 & 푸시</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel left">
+        <div class="panel-header">
+          <h2>게시글 목록</h2>
+          <button id="btn-new-post">새 글</button>
+        </div>
+        <ul id="post-list" class="post-list"></ul>
+      </aside>
+
+      <section class="panel right">
+        <h2>게시글 편집</h2>
+        <form id="post-form" class="form-grid">
+          <label>Slug <input id="slug" required /></label>
+          <label>Title <input id="title" required /></label>
+          <label>Summary <textarea id="summary" rows="2" required></textarea></label>
+
+          <div class="row2">
+            <label>Category
+              <select id="category">
+                <option value="youth">youth</option>
+                <option value="midlife">midlife</option>
+                <option value="government">government</option>
+                <option value="smallbiz">smallbiz</option>
+                <option value="living-economy">living-economy</option>
+              </select>
+            </label>
+
+            <label>Status
+              <select id="status">
+                <option value="draft">draft</option>
+                <option value="published">published</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="row2">
+            <label>Tags (쉼표 구분) <input id="tags" placeholder="청년, 월세" /></label>
+            <label>PublishedAt <input id="publishedAt" type="date" required /></label>
+          </div>
+
+          <label>Thumbnail
+            <div class="inline">
+              <input id="thumbnail" readonly />
+              <input id="thumbnail-upload" type="file" accept="image/*" />
+            </div>
+          </label>
+
+          <label>Content Markdown <textarea id="contentMd" rows="12" required></textarea></label>
+
+          <div class="actions">
+            <button type="submit" class="primary">저장</button>
+          </div>
+        </form>
+
+        <section class="upload-box">
+          <h3>본문 이미지 업로드</h3>
+          <div class="inline">
+            <input id="content-upload" type="file" multiple accept="image/*" />
+            <button id="btn-upload-content">업로드</button>
+          </div>
+          <ul id="uploaded-list"></ul>
+        </section>
+
+        <section>
+          <h3>마크다운 미리보기</h3>
+          <div id="preview" class="preview"></div>
+        </section>
+
+        <section>
+          <h3>작업 로그</h3>
+          <pre id="log"></pre>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

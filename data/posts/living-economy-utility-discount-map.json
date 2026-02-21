@@ -1,0 +1,12 @@
+{
+  "id": "living-economy-utility-discount-map",
+  "slug": "living-economy-utility-discount-map",
+  "title": "생활비 절감: 전기·가스 할인 제도 한눈에 보기",
+  "summary": "가구 조건에 맞는 요금 감면 제도를 지역별로 찾아보세요.",
+  "category": "living-economy",
+  "tags": ["생활경제", "할인", "공공요금"],
+  "thumbnail": "/images/placeholders/p2.svg",
+  "publishedAt": "2026-02-14",
+  "status": "published",
+  "contentMd": "## 지역별 확인\n\n전기·가스 감면은 지자체별로 접수처가 다를 수 있습니다.\n\n신청 전 거주 지역 공지사항을 확인하세요."
+}
