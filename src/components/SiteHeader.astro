@@ -1,0 +1,49 @@
+---
+import { CATEGORIES } from '../lib/categories';
+import { href } from '../lib/href';
+
+const navItems = [
+  { label: 'Home', url: href('/') },
+  { label: '검색', url: href('/search/') },
+  ...CATEGORIES.map((category) => ({
+    label: category.label,
+    url: href(`/c/${category.slug}/`),
+  })),
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="mb-8 rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-sm">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <a href={href('/')} class="text-xl font-bold tracking-tight text-slate-900">복지정보.com</a>
+    <nav>
+      <ul class="flex flex-wrap gap-2 text-sm">
+        {
+          navItems.map((item) => {
+            const isActive =
+              item.url === href('/')
+                ? currentPath === href('/')
+                : currentPath.startsWith(item.url);
+
+            return (
+              <li>
+                <a
+                  href={item.url}
+                  class:list={[
+                    'inline-flex rounded-full px-3 py-1.5 transition',
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
